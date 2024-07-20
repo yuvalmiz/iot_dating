@@ -7,6 +7,10 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
 import QRCodeScannerScreen from './screens/QRCodeScannerScreen';
+// import InteractiveImage from './screens/InteractiveImage';
+import InteractiveImageWrapper from './screens/InteractiveImageWrapper.js';
+
+// import { insertIntoTable, readFromTable } from './api.js';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +22,7 @@ export default function App() {
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} />
         <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
+        <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>

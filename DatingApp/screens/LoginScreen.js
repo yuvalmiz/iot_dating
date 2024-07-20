@@ -7,7 +7,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     // Implement login logic here
-    navigation.navigate('QRCodeGenerator'); // Assuming you will add a Home screen later
+    navigation.navigate('InteractiveImageWrapper');
   };
 
   return (
