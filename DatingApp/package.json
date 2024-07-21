@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@azure/storage-blob": "^12.23.0",
     "@expo/metro-runtime": "~3.2.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
@@ -16,6 +17,7 @@
     "expo-barcode-scanner": "~13.0.1",
     "expo-camera": "~15.0.14",
     "expo-file-system": "~17.0.1",
+    "expo-image-picker": "~15.0.7",
     "expo-media-library": "~16.0.4",
     "expo-print": "~13.0.1",
     "expo-sharing": "~12.0.1",

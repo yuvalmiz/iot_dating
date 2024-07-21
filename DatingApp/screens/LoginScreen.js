@@ -7,8 +7,8 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     // Implement login logic here
-    navigation.navigate('InteractiveImageWrapper');
-  };
+    navigation.navigate('Manager');
+  };  
 
   return (
     <View style={styles.container}>

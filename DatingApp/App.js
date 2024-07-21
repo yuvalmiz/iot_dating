@@ -7,10 +7,10 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
 import QRCodeScannerScreen from './screens/QRCodeScannerScreen';
-// import InteractiveImage from './screens/InteractiveImage';
-import InteractiveImageWrapper from './screens/InteractiveImageWrapper.js';
-
-// import { insertIntoTable, readFromTable } from './api.js';
+import InteractiveImageWrapper from './screens/InteractiveImageWrapper';
+import ManagerScreen from './screens/ManagerScreen';
+import UploadMapScreen from './screens/UploadMapScreen';
+import ChatScreen from './screens/ChatScreen';
 
 const Stack = createStackNavigator();
 
@@ -19,10 +19,13 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Manager" component={ManagerScreen} />
+        <Stack.Screen name="UploadMap" component={UploadMapScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} />
         <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
         <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
