@@ -11,9 +11,11 @@
   "dependencies": {
     "@azure/storage-blob": "^12.23.0",
     "@expo/metro-runtime": "~3.2.1",
+    "@react-native-community/datetimepicker": "8.0.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "expo": "~51.0.21",
+    "expo-auth-session": "~5.5.2",
     "expo-barcode-scanner": "~13.0.1",
     "expo-camera": "~15.0.14",
     "expo-file-system": "~17.0.1",
@@ -27,6 +29,7 @@
     "jspdf": "^2.5.1",
     "qrcode": "^1.5.3",
     "react": "18.2.0",
+    "react-datepicker": "^7.3.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.3",
     "react-native-html-to-pdf": "^0.12.0",
@@ -35,7 +38,8 @@
     "react-native-screens": "^3.32.0",
     "react-native-svg": "^15.4.0",
     "react-native-web": "~0.19.10",
-    "react-router-dom": "^6.25.1"
+    "react-router-dom": "^6.25.1",
+    "undefined": "expo-auth-session/providers/google"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

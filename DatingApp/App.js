@@ -12,7 +12,9 @@ import ManagerScreen from './screens/ManagerScreen';
 import UploadMapScreen from './screens/UploadMapScreen';
 import ChatScreen from './screens/ChatScreen';
 import ManagerMapScreen from './screens/ManagerMapScreen';
-
+import CreateProfileScreen from './screens/CreateProfileScreen';
+import ExistingUserScreen from './screens/ExistingUserScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -29,6 +31,9 @@ export default function App() {
         <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen name="ManagerMap" component={ManagerMapScreen} />
+        <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
+        <Stack.Screen name="ExistingUser" component={ExistingUserScreen} />
+        <Stack.Screen name="Settings" component={SettingsScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>

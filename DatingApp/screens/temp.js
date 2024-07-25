@@ -1,182 +1,123 @@
-import React, { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, Dimensions, TouchableWithoutFeedback, Button } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { insertIntoTable, readFromTable } from '../api';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import * as Google from 'expo-auth-session/providers/google';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
+import { readFromTable } from '../api';
+import { useUser } from '../context/UserContext'; // Import useUser
 
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
+WebBrowser.maybeCompleteAuthSession();
 
-const InteractiveImage = ({ imageUrl, onSeatClick, barName, activated }) => {
-  const [seats, setSeats] = useState([]);
-  const [imageLayout, setImageLayout] = useState(null);
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  const [zoom, setZoom] = useState(1);
+export default function LoginScreen({ navigation }) {
+  const { setUser } = useUser();
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
+    webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
+    redirectUri: makeRedirectUri({
+      useProxy: true,
+    }),
+  });
 
   useEffect(() => {
-    const fetchSeats = async () => {
+    const fetchUserInfo = async (accessToken) => {
       try {
-        const queryFilter = `PartitionKey eq '${barName}' and RowKey ge 'seat_' and RowKey lt 'seat_~'`;
-        const fetchedSeats = await readFromTable('BarTable', queryFilter);
-        setSeats(fetchedSeats);
+        const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        const user = await response.json();
+        return user.email;
       } catch (error) {
-        console.error('Error fetching seats:', error);
+        console.error('Error fetching user info:', error);
+        Alert.alert('Error', 'Failed to fetch user info.');
+        return null;
       }
     };
-    fetchSeats();
-  }, [barName]);
 
-  useEffect(() => {
-    const handleDimensionChange = () => {
-      setImageLayout(null); // Reset image layout to trigger recalculation
+    const checkUserExists = async (email) => {
+      const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
+      const user = await readFromTable('BarTable', queryFilter);
+      return user.length > 0;
     };
-    Dimensions.addEventListener('change', handleDimensionChange);
 
-    return () => {
-      Dimensions.removeEventListener('change', handleDimensionChange);
-    };
-  }, []);
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      fetchUserInfo(authentication.accessToken).then((email) => {
+        if (email) {
+          console.log('User email:', email);
+          setUser((prevUser) => ({ ...prevUser, email }));
 
-  const handleImageClick = async (event) => {
-    if (!imageLayout) {
-      console.error('Image layout not available');
-      return;
+          checkUserExists(email).then((exists) => {
+            if (exists) {
+              navigation.navigate('Manager');
+            } else {
+              navigation.navigate('CreateProfile');
+            }
+          });
+        }
+      });
     }
-    console.log('Image clicked:', event.nativeEvent);
-    const { offsetX, offsetY } = event.nativeEvent;
-    console.log('Image layout:', imageLayout);
-    const locationX = offsetX;
-    const locationY = offsetY;
-    const locationRelativeX = (locationX - imageLayout.x) / (imageLayout.width * zoom);
-    const locationRelativeY = (locationY - imageLayout.y) / (imageLayout.height * zoom);
-
-    console.log('Clicked at:', { locationRelativeX, locationRelativeY });
-
-    if (locationRelativeX < 0 || locationRelativeY < 0 || locationRelativeX > 1 || locationRelativeY > 1) {
-      console.error('Click is outside of the image bounds');
-      return;
-    }
-
-    const newSeat = {
-      PartitionKey: barName,
-      RowKey: `seat_${seats.length + 1}`,
-      table_id: 'default_table',
-      user_id: 'default_user',
-      x_position: locationRelativeX,
-      y_position: locationRelativeY,
-    };
-
-    try {
-      await insertIntoTable('BarTable', newSeat);
-      setSeats([...seats, newSeat]); // Automatically refresh the dots
-    } catch (error) {
-      console.error('Error saving seat data:', error);
-    }
-  };
-
-  const onImageLayout = (event) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    console.log('Image layout:', { x, y, width, height, event: event.nativeEvent });
-
-    Image.getSize(imageUrl, (naturalWidth, naturalHeight) => {
-      const aspectRatio = naturalWidth / naturalHeight;
-      let displayWidth, displayHeight;
-
-      if (width / height > aspectRatio) {
-        // Image is scaled to fit height
-        displayHeight = height;
-        displayWidth = height * aspectRatio;
-      } else {
-        // Image is scaled to fit width
-        displayWidth = width;
-        displayHeight = width / aspectRatio;
-      }
-
-      setImageLayout({ x, y, width, height, displayWidth, displayHeight });
-      setImageDimensions({ width: naturalWidth, height: naturalHeight });
-    });
-  };
-
-  const calculateSeatPosition = (seat, layout) => {
-    return {
-      cx: seat.x_position * layout.width * zoom,
-      cy: seat.y_position * layout.height * zoom,
-    };
-  };
-
-  const handleZoomIn = () => {
-    setZoom(zoom * 1.2);
-  };
-
-  const handleZoomOut = () => {
-    setZoom(zoom / 1.2);
-  };
+  }, [response]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.zoomContainer}>
-        <Button title="+" onPress={handleZoomIn} />
-        <Button title="-" onPress={handleZoomOut} />
-      </View>
-      <TouchableWithoutFeedback onPress={activated ? handleImageClick : null}>
-        <View style={styles.imageWrapper}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={[styles.image, { transform: [{ scale: zoom }] }]}
-            onLayout={onImageLayout}
-          />
-          {imageLayout && (
-            <Svg style={[styles.svg, { width: imageLayout.width, height: imageLayout.height }]}>
-              {seats.map((seat, index) => {
-                const { cx, cy } = calculateSeatPosition(seat, imageLayout);
-                return (
-                  <Circle
-                    style={{ cursor: 'pointer', zIndex: 10 }}
-                    key={index}
-                    cx={cx}
-                    cy={cy}
-                    r={0.01 * Math.min(screenWidth, screenHeight) * zoom}
-                    fill="blue"
-                    onPress={() => activated && onSeatClick(index)}
-                  />
-                );
-              })}
-            </Svg>
-          )}
-        </View>
-      </TouchableWithoutFeedback>
+      <Text style={styles.title}>Welcome to BarMingle</Text>
+      <Text style={styles.subtitle}>Please sign in to continue</Text>
+      <TouchableOpacity
+        style={styles.googleButton}
+        disabled={!request}
+        onPress={() => {
+          promptAsync();
+        }}
+      >
+        <Image
+          source={{ uri: 'https://img.icons8.com/color/48/000000/google-logo.png' }}
+          style={styles.googleIcon}
+        />
+        <Text style={styles.googleButtonText}>Sign in with Google</Text>
+      </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#f0f0f0',
   },
-  zoomContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '20%',
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
     marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
   },
-  imageWrapper: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  googleButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative', // Ensure this container can hold absolutely positioned elements
+    backgroundColor: '#4285F4',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    elevation: 3,
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
   },
-  svg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
+  googleButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
-
-export default InteractiveImage;
