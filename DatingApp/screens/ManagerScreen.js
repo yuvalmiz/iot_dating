@@ -23,6 +23,10 @@ const ManagerScreen = () => {
     Alert.alert('Logged out successfully');
   };
 
+  const handleViewMap = () => {
+    navigation.navigate('ManagerMap', { barName: '', partitionKey: 'YourPartitionKey' });
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={handleGenerateQRCode}>
@@ -40,6 +44,10 @@ const ManagerScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <FontAwesome name="sign-out" size={24} color="white" />
         <Text style={styles.buttonText}>Logout</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleViewMap }>
+        <FontAwesome name="sign-out" size={24} color="white" />
+        <Text style={styles.buttonText}>ViewMap</Text>
       </TouchableOpacity>
     </View>
   );

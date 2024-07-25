@@ -11,6 +11,8 @@ import InteractiveImageWrapper from './screens/InteractiveImageWrapper';
 import ManagerScreen from './screens/ManagerScreen';
 import UploadMapScreen from './screens/UploadMapScreen';
 import ChatScreen from './screens/ChatScreen';
+import ManagerMapScreen from './screens/ManagerMapScreen';
+
 
 const Stack = createStackNavigator();
 
@@ -26,6 +28,7 @@ export default function App() {
         <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
         <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
         <Stack.Screen name="Chat" component={ChatScreen} />
+        <Stack.Screen name="ManagerMap" component={ManagerMapScreen} />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>
