@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadToBlob, readFromTable, insertIntoTable } from '../api';
+import { SharedStateContext } from '../context';
 
-export default function SettingsScreen({ navigation, route }) {
-  const { email } = route.params.email;
+export default function SettingsScreen({ navigation }) {
   const [profileData, setProfileData] = useState({});
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { email } = useContext(SharedStateContext);
 
   useEffect(() => {
     const fetchProfileData = async () => {

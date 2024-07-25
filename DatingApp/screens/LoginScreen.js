@@ -1,15 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { readFromTable } from '../api';
-// import { useData } from '../UserContext'; // Correct import
+import { SharedStateContext } from '../context';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
-  // const { setEmail } = useData();
+  const { email, setEmail } = useContext(SharedStateContext);
+  
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
     webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
@@ -17,7 +18,23 @@ export default function LoginScreen({ navigation }) {
       useProxy: true,
     }),
   });
-
+  useEffect(() => {
+    const checkUserExists = async (email) => {
+      const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
+      const user = await readFromTable('BarTable', queryFilter);
+      return user.length > 0;
+    };
+    if (!email) {
+      return;
+    }
+    checkUserExists(email).then((exists) => {
+      if (exists) {
+        navigation.navigate('ExistingUser');
+      } else {
+        navigation.navigate('CreateProfile');
+      }
+    });
+  }, [email]);
   useEffect(() => {
     const fetchUserInfo = async (accessToken) => {
       try {
@@ -26,6 +43,7 @@ export default function LoginScreen({ navigation }) {
         });
 
         const user = await response.json();
+        console.log('User info:', user);
         return user.email;
       } catch (error) {
         console.error('Error fetching user info:', error);
@@ -34,26 +52,13 @@ export default function LoginScreen({ navigation }) {
       }
     };
 
-    const checkUserExists = async (email) => {
-      const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
-      const user = await readFromTable('BarTable', queryFilter);
-      return user.length > 0;
-    };
 
     if (response?.type === 'success') {
       const { authentication } = response;
       fetchUserInfo(authentication.accessToken).then((email) => {
         if (email) {
-          console.log('User email:', email);
+          setEmail(email);
           // setEmail(email);
-
-          checkUserExists(email).then((exists) => {
-            if (exists) {
-              navigation.navigate('ExistingUser', { email });
-            } else {
-              navigation.navigate('CreateProfile', { email });
-            }
-          });
         }
       });
     }

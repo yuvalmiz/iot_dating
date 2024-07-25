@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert, TouchableOpacity, Image, Picker } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { insertIntoTable, uploadToBlob } from '../api';
+import { SharedStateContext } from '../context';
 
-export default function CreateProfileScreen({ navigation, route }) {
-  const email = route.params.email;
+export default function CreateProfileScreen({ navigation }) {
   const [fullName, setFullName] = useState('');
   const [birthDate, setBirthDate] = useState(new Date());
   const [gender, setGender] = useState('');
@@ -14,6 +14,7 @@ export default function CreateProfileScreen({ navigation, route }) {
   const [interests, setInterests] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { email } = useContext(SharedStateContext);
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -28,7 +29,6 @@ export default function CreateProfileScreen({ navigation, route }) {
   };
 
   const handleSaveProfile = async () => {
-    console.log(email);
     if (!fullName || !birthDate || !gender) {
       Alert.alert('Error', 'Please fill all the mandatory fields.');
       return;

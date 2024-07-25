@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { SharedStateContext } from '../context';
 
-export default function ExistingUserScreen({ navigation, route }) {
-  const { email } = route.params;
+export default function ExistingUserScreen({ navigation }) {
+  const { email } = useContext(SharedStateContext);
 
   return (
     <View style={styles.container}>
