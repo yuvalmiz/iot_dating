@@ -15,14 +15,14 @@ const useSignalR = (onMessageReceived) => {
 
         const newConnection = new HubConnectionBuilder()
           .withUrl(connectionInfo.url, {
-            accessTokenFactory: () => connectionInfo.accessToken
+            accessTokenFactory: () => connectionInfo.accessToken,
           })
           .configureLogging(LogLevel.Information)
           .withAutomaticReconnect()
           .build();
 
-        newConnection.on('newMessage', (user, message) => {
-          onMessageReceived(user, message);
+        newConnection.on('ReceiveMessage', (user, message, timestamp) => {
+          onMessageReceived(user, message, timestamp);
         });
 
         await newConnection.start();
@@ -41,7 +41,7 @@ const useSignalR = (onMessageReceived) => {
     };
   }, []);
 
-  const sendMessage = async (sender, user, message) => {
+  const sendMessage = async (user, otherUser, message, timestamp) => {
     try {
       const response = await fetch('http://localhost:7071/api/sendMessage', {
         method: 'POST',
@@ -49,9 +49,10 @@ const useSignalR = (onMessageReceived) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sender,
           user,
+          otherUser,
           message,
+          timestamp,
         }),
       });
 

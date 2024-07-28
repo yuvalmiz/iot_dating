@@ -1,50 +1,72 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, Keyboard } from 'react-native';
 import useSignalR from '../services/SignalRConnection';
 import { readFromTable } from '../api';
 import { SharedStateContext } from '../context';
+import { format } from 'date-fns';
 
 const ChatScreen = ({ route }) => {
   const { otherUserEmail } = route.params;
   const { email } = useContext(SharedStateContext);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const { sendMessage, connection } = useSignalR((sender, message) => {
-    setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message }]);
+  const users = [email, otherUserEmail].sort();
+
+  const { sendMessage, connection } = useSignalR((sender, message, timestamp) => {
+    setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
   });
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const users = [email, otherUserEmail].sort();
       const partitionKey = `${users[0]};${users[1]}`;
       const queryFilter = `PartitionKey eq '${partitionKey}'`;
       const fetchedMessages = await readFromTable('BarTable', queryFilter);
+
+      fetchedMessages.forEach(message => {
+        if (!message.Timestamp) {
+          message.Timestamp = new Date().toISOString(); // Set a default timestamp if missing
+        }
+      });
+
       setMessages(fetchedMessages.sort((a, b) => a.Timestamp.localeCompare(b.Timestamp)));
     };
 
     fetchMessages();
 
     if (connection) {
-      connection.on('ReceiveMessage', (sender, message) => {
-        setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message }]);
+      connection.on('ReceiveMessage', (sender, message, timestamp) => {
+        setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
       });
+
+      connection.invoke('JoinGroup', `${users[0]};${users[1]}`).catch((err) => console.error(err));
 
       return () => {
         connection.off('ReceiveMessage');
+        connection.invoke('LeaveGroup', `${users[0]};${users[1]}`).catch((err) => console.error(err));
       };
     }
   }, [email, otherUserEmail, connection]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      sendMessage(email, otherUserEmail, newMessage);
+      const timestamp = new Date().toISOString();
+      sendMessage(email, otherUserEmail, newMessage, timestamp);
+      setMessages((prevMessages) => [...prevMessages, { Sender: email, Message: newMessage, Timestamp: timestamp }]);
       setNewMessage('');
+      Keyboard.dismiss();
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.nativeEvent.key === 'Enter') {
+      handleSendMessage();
     }
   };
 
   const renderItem = ({ item }) => (
     <View style={item.Sender === email ? styles.myMessage : styles.otherMessage}>
       <Text>{item.Message}</Text>
+      <Text style={styles.timestamp}>{format(new Date(item.Timestamp), 'HH:mm')}</Text>
     </View>
   );
 
@@ -62,6 +84,7 @@ const ChatScreen = ({ route }) => {
           onChangeText={setNewMessage}
           placeholder="Type a message"
           style={styles.input}
+          onKeyPress={handleKeyPress}
         />
         <Button title="Send" onPress={handleSendMessage} />
       </View>
@@ -104,6 +127,11 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 5,
     margin: 5,
+  },
+  timestamp: {
+    fontSize: 10,
+    color: '#888',
+    alignSelf: 'flex-end',
   },
 });
 
