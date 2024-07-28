@@ -35,7 +35,7 @@ export default function App() {
           <Stack.Screen name="ManagerMap" component={ManagerMapScreen} />
           <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
           <Stack.Screen name="ExistingUser" component={ExistingUserScreen} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} options={{headerLeft: () => {setEmail()}}} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

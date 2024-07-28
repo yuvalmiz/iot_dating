@@ -13,6 +13,7 @@ const SharedStateProvider = ({ children }) => {
     }
   });
   const saveEmail = (email) => {
+    console.log('Saving email:', email);
     setEmail(email);
     localStorage.setItem('userEmail', email);
   }
