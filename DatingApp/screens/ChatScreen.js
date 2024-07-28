@@ -12,7 +12,7 @@ const ChatScreen = ({ route }) => {
   const [newMessage, setNewMessage] = useState('');
   const users = [email, otherUserEmail].sort();
 
-  const { sendMessage, connection } = useSignalR((sender, message, timestamp) => {
+  const { sendMessage, connection, JoinGroup, LeaveGroup } = useSignalR((sender, message, timestamp) => {
     setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
   });
 
@@ -34,15 +34,13 @@ const ChatScreen = ({ route }) => {
     fetchMessages();
 
     if (connection) {
-      connection.on('ReceiveMessage', (sender, message, timestamp) => {
-        setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
-      });
-
-      connection.invoke('JoinGroup', `${users[0]};${users[1]}`).catch((err) => console.error(err));
+      console.log('Joining group - ${users[0]};${users[1]}', connection);
+      connection.invoke('JoinGroup', `${users[0]};${users[1]}`).catch((err) => console.log("-----",err));
 
       return () => {
+        console.log('Leaving group');
         connection.off('ReceiveMessage');
-        connection.invoke('LeaveGroup', `${users[0]};${users[1]}`).catch((err) => console.error(err));
+        connection.invoke('LeaveGroup', `${users[0]};${users[1]}`).catch((err) => console.log("------",err));
       };
     }
   }, [email, otherUserEmail, connection]);
@@ -51,7 +49,6 @@ const ChatScreen = ({ route }) => {
     if (newMessage.trim()) {
       const timestamp = new Date().toISOString();
       sendMessage(email, otherUserEmail, newMessage, timestamp);
-      setMessages((prevMessages) => [...prevMessages, { Sender: email, Message: newMessage, Timestamp: timestamp }]);
       setNewMessage('');
       Keyboard.dismiss();
     }

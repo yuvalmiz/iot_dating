@@ -22,6 +22,7 @@ const useSignalR = (onMessageReceived) => {
           .build();
 
         newConnection.on('ReceiveMessage', (user, message, timestamp) => {
+          console.log('Received message:', user, message, timestamp);
           onMessageReceived(user, message, timestamp);
         });
 

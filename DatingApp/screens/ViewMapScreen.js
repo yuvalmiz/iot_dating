@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, Dimensions, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { readFromTable } from '../api';
-import useSignalR from '../services/SignalRConnection';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
@@ -16,7 +15,6 @@ const ViewMapScreen = ({ navigation }) => {
   const [imageLayout, setImageLayout] = useState(null);
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
   const [loading, setLoading] = useState(true);
-  const { sendMessage } = useSignalR(handleMessageReceived);
 
   useEffect(() => {
     const fetchSeats = async () => {

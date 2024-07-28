@@ -20,10 +20,11 @@ def main(req: func.HttpRequest, signalRDatingChat: func.Out[str]) -> func.HttpRe
     if not user or not other_user or not message or not timestamp:
         return func.HttpResponse("Missing user, otherUser, message, or timestamp", status_code=400)
 
+    groupName = f"{sorted([user, other_user])[0]};{sorted([user, other_user])[1]}"
+    logging.info(f"sending message toGroup name: {groupName}")
     signalRMessage = {
         "target": "ReceiveMessage",
         "arguments": [user, message, timestamp],
-        "userId": other_user
     }
     
     signalRDatingChat.set(json.dumps(signalRMessage))
