@@ -8,7 +8,7 @@ export default function SettingsScreen({ navigation }) {
   const [profileData, setProfileData] = useState({});
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { email } = useContext(SharedStateContext);
+  const { email, setEmail } = useContext(SharedStateContext);
 
   useEffect(() => {
     const fetchProfileData = async () => {

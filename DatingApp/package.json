@@ -11,9 +11,11 @@
   "dependencies": {
     "@azure/storage-blob": "^12.23.0",
     "@expo/metro-runtime": "~3.2.1",
+    "@microsoft/signalr": "^8.0.7",
     "@react-native-community/datetimepicker": "8.0.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
+    "axios": "^1.7.2",
     "expo": "~51.0.21",
     "expo-auth-session": "~5.5.2",
     "expo-barcode-scanner": "~13.0.1",

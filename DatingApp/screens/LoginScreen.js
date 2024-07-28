@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }) {
     }
     checkUserExists(email).then((exists) => {
       if (exists) {
-        navigation.navigate('ExistingUser');
+        navigation.navigate('User Menu');
       } else {
         navigation.navigate('CreateProfile');
       }

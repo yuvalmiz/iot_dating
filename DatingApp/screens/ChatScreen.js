@@ -1,57 +1,70 @@
-// ChatScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
-import { startChat, sendMessage, getMessages } from '../api';
+import useSignalR from '../services/SignalRConnection';
+import { readFromTable } from '../api';
+import { SharedStateContext } from '../context';
 
 const ChatScreen = ({ route }) => {
-  const { user1Id, user2Id } = route.params;
-  const [chatId, setChatId] = useState(null);
-  const [message, setMessage] = useState('');
+  const { otherUserEmail } = route.params;
+  const { email } = useContext(SharedStateContext);
   const [messages, setMessages] = useState([]);
-
-  useEffect(() => {
-    const initiateChat = async () => {
-      const id = await startChat(user1Id, user2Id);
-      setChatId(id);
-    };
-    initiateChat();
-  }, []);
+  const [newMessage, setNewMessage] = useState('');
+  const { sendMessage, connection } = useSignalR((sender, message) => {
+    setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message }]);
+  });
 
   useEffect(() => {
     const fetchMessages = async () => {
-      if (chatId) {
-        const msgs = await getMessages(chatId);
-        setMessages(msgs);
-      }
+      const users = [email, otherUserEmail].sort();
+      const partitionKey = `${users[0]};${users[1]}`;
+      const queryFilter = `PartitionKey eq '${partitionKey}'`;
+      const fetchedMessages = await readFromTable('BarTable', queryFilter);
+      setMessages(fetchedMessages.sort((a, b) => a.Timestamp.localeCompare(b.Timestamp)));
     };
-    fetchMessages();
-  }, [chatId]);
 
-  const handleSend = async () => {
-    if (message.trim()) {
-      await sendMessage(chatId, user1Id, message);
-      setMessage('');
-      const updatedMessages = await getMessages(chatId);
-      setMessages(updatedMessages);
+    fetchMessages();
+
+    if (connection) {
+      connection.on('ReceiveMessage', (sender, message) => {
+        setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message }]);
+      });
+
+      return () => {
+        connection.off('ReceiveMessage');
+      };
+    }
+  }, [email, otherUserEmail, connection]);
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      sendMessage(email, otherUserEmail, newMessage);
+      setNewMessage('');
     }
   };
+
+  const renderItem = ({ item }) => (
+    <View style={item.Sender === email ? styles.myMessage : styles.otherMessage}>
+      <Text>{item.Message}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <FlatList
         data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Text style={styles.message}>{item.sender_id === user1Id ? 'Me' : 'Them'}: {item.message}</Text>
-        )}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.RowKey}
+        style={styles.messageList}
       />
-      <TextInput
-        style={styles.input}
-        value={message}
-        onChangeText={setMessage}
-        placeholder="Type a message"
-      />
-      <Button title="Send" onPress={handleSend} />
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Type a message"
+          style={styles.input}
+        />
+        <Button title="Send" onPress={handleSendMessage} />
+      </View>
     </View>
   );
 };
@@ -59,20 +72,38 @@ const ChatScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
   },
-  message: {
+  messageList: {
+    flex: 1,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 10,
-    marginVertical: 5,
-    borderRadius: 5,
-    backgroundColor: '#e1e1e1',
+    borderTopWidth: 1,
+    borderColor: '#ddd',
   },
   input: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#ccc',
+    borderRadius: 5,
     padding: 10,
-    marginVertical: 10,
+    marginRight: 10,
+  },
+  myMessage: {
+    padding: 10,
+    backgroundColor: '#dcf8c6',
+    alignSelf: 'flex-end',
+    borderRadius: 5,
+    margin: 5,
+  },
+  otherMessage: {
+    padding: 10,
+    backgroundColor: '#f1f1f1',
+    alignSelf: 'flex-start',
+    borderRadius: 5,
+    margin: 5,
   },
 });
 

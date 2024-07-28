@@ -79,61 +79,24 @@ const readFromTable = async (tableName, queryFilter = '') => {
   }
 };
 
-const startChat = async (user1Id, user2Id) => {
-  try {
-    const response = await fetch('http://localhost:7071/api/startChat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user1_id: user1Id,
-        user2_id: user2Id,
-      }),
-    });
-    const chatId = await response.text();
-    return chatId;
-  } catch (error) {
-    console.error('Error starting chat:', error);
-    throw error;
-  }
+const saveMessage = async (user1, user2, message) => {
+  const users = [user1, user2].sort();
+  const partitionKey = `${users[0]};${users[1]}`;
+  const rowKey = `${Date.now()}`;
+  const entity = {
+    PartitionKey: partitionKey,
+    RowKey: rowKey,
+    User: user1,
+    Message: message,
+  };
+  return await insertIntoTable('BarTable', entity);
 };
 
-const sendMessage = async (chatId, senderId, message) => {
-  try {
-    const response = await fetch('http://localhost:7071/api/sendMessage', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        sender_id: senderId,
-        message: message,
-      }),
-    });
-    const text = await response.text();
-    return text;
-  } catch (error) {
-    console.error('Error sending message:', error);
-    throw error;
-  }
-};
-
-const getMessages = async (chatId) => {
-  try {
-    const response = await fetch(`http://localhost:7071/api/getMessages?chat_id=${chatId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    const messages = await response.json();
-    return messages;
-  } catch (error) {
-    console.error('Error getting messages:', error);
-    throw error;
-  }
+const getMessages = async (user1, user2) => {
+  const users = [user1, user2].sort();
+  const partitionKey = `${users[0]};${users[1]}`;
+  const queryFilter = `PartitionKey eq '${partitionKey}'`;
+  return await readFromTable('BarTable', queryFilter);
 };
 
 const sendPdfViaEmail = async (pdfBase64, email) => {
@@ -161,4 +124,4 @@ const sendPdfViaEmail = async (pdfBase64, email) => {
   }
 };
 
-export { startChat, sendMessage, getMessages, insertIntoTable, readFromTable, uploadToBlob, sendPdfViaEmail };
+export { saveMessage, getMessages, insertIntoTable, readFromTable, uploadToBlob, sendPdfViaEmail };

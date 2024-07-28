@@ -5,6 +5,7 @@ const SharedStateContext = createContext();
 
 const SharedStateProvider = ({ children }) => {
   const [email, setEmail] = useState('');
+  const [otherEmail, setOtherEmail] = useState('');
   
   useEffect(() => {
     const storedEmail = localStorage.getItem('userEmail');
@@ -20,7 +21,7 @@ const SharedStateProvider = ({ children }) => {
 
 
   return (
-    <SharedStateContext.Provider value={{ email, setEmail: saveEmail }}>
+    <SharedStateContext.Provider value={{ email, setEmail: saveEmail, otherEmail, setOtherEmail }}>
       {children}
     </SharedStateContext.Provider>
   );
