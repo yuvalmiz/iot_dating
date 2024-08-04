@@ -28,7 +28,11 @@ export default function LoginScreen({ navigation }) {
     }
     checkUserExists(email).then((exists) => {
       if (exists) {
-        navigation.navigate('User Menu');
+        if (email === 'yuval.amit.dahan.yuval@gmail.com') {
+          navigation.navigate('Manager');
+        } else {
+          navigation.navigate('User Menu');
+        }
       } else {
         navigation.navigate('CreateProfile');
       }
@@ -57,7 +61,6 @@ export default function LoginScreen({ navigation }) {
       fetchUserInfo(authentication.accessToken).then((email) => {
         if (email) {
           setEmail(email);
-          // setEmail(email);
         }
       });
     }
