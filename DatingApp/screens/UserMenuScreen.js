@@ -1,10 +1,13 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, BackHandler } from 'react-native';
 import { SharedStateContext } from '../context';
+import { readFromTable } from '../api';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function UserMenuScreen({ navigation }) {
   const { email, setEmail } = useContext(SharedStateContext);
+  const { firstName, setFirstName } = useContext(SharedStateContext);
+  const { lastName, setLastName } = useContext(SharedStateContext);
   const [showBackModal, setShowBackModal] = useState(false);
 
   useFocusEffect(
@@ -20,8 +23,16 @@ export default function UserMenuScreen({ navigation }) {
     }, [])
   );
 
+  // async function getUser(email) {
+  //   const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
+  //   const user = await readFromTable('BarTable', queryFilter);
+  //   return user;
+  // }
+
   const handleLogout = () => {
     setEmail('');
+    setFirstName('');
+    setLastName('');
     setShowBackModal(false);
     navigation.navigate('Login');
   };
@@ -33,7 +44,7 @@ export default function UserMenuScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
-      <Text style={styles.subtitle}>Hello, {email}</Text>
+      <Text style={styles.subtitle}>Hello, {firstName} {lastName}!</Text>
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('ViewMap', { email })}

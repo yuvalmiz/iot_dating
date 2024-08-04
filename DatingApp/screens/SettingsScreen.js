@@ -8,7 +8,9 @@ export default function SettingsScreen({ navigation }) {
   const [profileData, setProfileData] = useState({});
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { email, setEmail } = useContext(SharedStateContext);
+  const {email, setEmail} = useContext(SharedStateContext);
+  const {firstName, setFirstName} = useContext(SharedStateContext);
+  const {lastName, setLastName} = useContext(SharedStateContext);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -38,7 +40,7 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    if (!profileData.fullName || !profileData.gender || !profileData.birthdate) {
+    if (!profileData.firstName || !profileData.lastName || !profileData.gender || !profileData.birthdate) {
       Alert.alert('Error', 'Please fill all mandatory fields.');
       return;
     }
@@ -73,9 +75,15 @@ export default function SettingsScreen({ navigation }) {
       </TouchableOpacity>
       <TextInput
         style={styles.input}
-        placeholder="Full Name*"
-        value={profileData.fullName}
-        onChangeText={(text) => setProfileData({ ...profileData, fullName: text })}
+        placeholder="First Name*"
+        value={profileData.firstName}
+        onChangeText={(text) => setProfileData({ ...profileData, firstName: text })}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Last Name*"
+        value={profileData.lastName}
+        onChangeText={(text) => setProfileData({ ...profileData, lastName: text })}
       />
       <TextInput
         style={styles.input}

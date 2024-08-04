@@ -5,7 +5,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SharedStateProvider, SharedStateContext } from './context'; // Import the provider
 import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
 import QRCodeScannerScreen from './screens/QRCodeScannerScreen';
 import InteractiveImageWrapper from './screens/InteractiveImageWrapper';
@@ -22,6 +21,8 @@ const Stack = createStackNavigator();
 
 function LogoutButton({ navigation }) {
   const { setEmail } = useContext(SharedStateContext);
+  const { setFirstName } = useContext(SharedStateContext);
+  const { setLastName } = useContext(SharedStateContext);
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
@@ -31,6 +32,8 @@ function LogoutButton({ navigation }) {
   const confirmLogout = () => {
     setShowModal(false);
     setEmail('');
+    setFirstName('');
+    setLastName('');
     navigation.navigate('Login');
   };
 
@@ -92,7 +95,6 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
           <Stack.Screen name="Manager" component={ManagerScreen} />
           <Stack.Screen name="UploadMap" component={UploadMapScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} />
           <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
           <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />

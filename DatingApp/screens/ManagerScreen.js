@@ -18,11 +18,6 @@ const ManagerScreen = () => {
     navigation.navigate('InteractiveImageWrapper');
   };
 
-  const handleLogout = () => {
-    // TODO: Implement your logout logic here
-    Alert.alert('Logged out successfully');
-  };
-
   const handleViewMap = () => {
     navigation.navigate('ManagerMap', { barName: '', partitionKey: 'YourPartitionKey' });
   };
@@ -40,10 +35,6 @@ const ManagerScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleCreateNewSeats}>
         <FontAwesome name="plus" size={24} color="white" />
         <Text style={styles.buttonText}>Create New Seats</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <FontAwesome name="sign-out" size={24} color="white" />
-        <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleViewMap }>
         <FontAwesome name="sign-out" size={24} color="white" />

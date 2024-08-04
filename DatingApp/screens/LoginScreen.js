@@ -9,6 +9,8 @@ import { SharedStateContext } from '../context';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
+  const { firstName, setFirstName } = useContext(SharedStateContext);
+  const { lastName, setLastName } = useContext(SharedStateContext);
   const { email, setEmail } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
@@ -17,23 +19,30 @@ export default function LoginScreen({ navigation }) {
       useProxy: true,
     }),
   });
+
   useEffect(() => {
-    const checkUserExists = async (email) => {
+    const userProfile = async (email) => {
       const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
       const user = await readFromTable('BarTable', queryFilter);
-      return user.length > 0;
+      return user
     };
     if (!email) {
       return;
     }
-    checkUserExists(email).then((exists) => {
+    userProfile(email).then(async (user) => {
+      const exists = user.length > 0;
       if (exists) {
+        setFirstName(user[0].firstName);
+        setLastName(user[0].lastName);
         if (email === 'yuval.amit.dahan.yuval@gmail.com') {
+          console.log('Manager detected');
           navigation.navigate('Manager');
         } else {
+          console.log('User detected');
           navigation.navigate('User Menu');
         }
       } else {
+        console.log('User not found - creating profile');
         navigation.navigate('CreateProfile');
       }
     });
@@ -58,7 +67,7 @@ export default function LoginScreen({ navigation }) {
 
     if (response?.type === 'success') {
       const { authentication } = response;
-      fetchUserInfo(authentication.accessToken).then((email) => {
+      fetchUserInfo(authentication.accessToken).then(async (email) => {
         if (email) {
           setEmail(email);
         }

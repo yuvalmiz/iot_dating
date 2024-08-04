@@ -7,7 +7,8 @@ import { insertIntoTable, uploadToBlob } from '../api';
 import { SharedStateContext } from '../context';
 
 export default function CreateProfileScreen({ navigation }) {
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [birthDate, setBirthDate] = useState(new Date());
   const [gender, setGender] = useState('');
   const [biography, setBiography] = useState('');
@@ -29,7 +30,7 @@ export default function CreateProfileScreen({ navigation }) {
   };
 
   const handleSaveProfile = async () => {
-    if (!fullName || !birthDate || !gender) {
+    if (!firstName || !lastName || !birthDate || !gender) {
       Alert.alert('Error', 'Please fill all the mandatory fields.');
       return;
     }
@@ -50,17 +51,19 @@ export default function CreateProfileScreen({ navigation }) {
     const userProfile = {
       PartitionKey: 'Users',
       RowKey: email,
-      fullName,
+      firstName,
+      lastName,
       birthDate: birthDate.toISOString(),
       gender,
       biography,
       interests,
       profilePictureUrl,
     };
-
+    setFirstName(firstName);
+    setLastName(lastName);
     try {
       await insertIntoTable('BarTable', userProfile);
-      navigation.navigate('Manager');
+      navigation.navigate('User Menu');
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile.');
     } finally {
@@ -71,12 +74,19 @@ export default function CreateProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Create Profile</Text>
-      <Text style={styles.label}>Full Name <Text style={styles.mandatory}>*</Text></Text>
+      <Text style={styles.label}>First Name <Text style={styles.mandatory}>*</Text></Text>
       <TextInput
         style={styles.input}
-        placeholder="Enter your full name"
-        value={fullName}
-        onChangeText={setFullName}
+        placeholder="Enter your first name"
+        value={firstName}
+        onChangeText={setFirstName}
+      />
+      <Text style={styles.label}>Last Name <Text style={styles.mandatory}>*</Text></Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your last name"
+        value={lastName}
+        onChangeText={setLastName}
       />
       <Text style={styles.label}>Birthdate <Text style={styles.mandatory}>*</Text></Text>
       <View style={styles.datePickerContainer}>
@@ -118,9 +128,9 @@ export default function CreateProfileScreen({ navigation }) {
         <Image source={{ uri: profilePicture }} style={styles.profileImage} />
       )}
       <TouchableOpacity
-        style={[styles.saveButton, (!fullName || !birthDate || !gender || loading) && styles.disabledButton]}
+        style={[styles.saveButton, (!firstName || !lastName || !birthDate || !gender || loading) && styles.disabledButton]}
         onPress={handleSaveProfile}
-        disabled={!fullName || !birthDate || !gender || loading}
+        disabled={!firstName || !lastName || !birthDate || !gender || loading}
       >
         <Text style={styles.saveButtonText}>Save Profile</Text>
       </TouchableOpacity>

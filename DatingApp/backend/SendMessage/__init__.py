@@ -25,6 +25,7 @@ def main(req: func.HttpRequest, signalRDatingChat: func.Out[str]) -> func.HttpRe
     signalRMessage = {
         "target": "ReceiveMessage",
         "arguments": [user, message, timestamp],
+        "groupName": groupName
     }
     
     signalRDatingChat.set(json.dumps(signalRMessage))

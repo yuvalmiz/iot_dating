@@ -12,7 +12,7 @@ const ChatScreen = ({ route }) => {
   const [newMessage, setNewMessage] = useState('');
   const users = [email, otherUserEmail].sort();
 
-  const { sendMessage, connection, JoinGroup, LeaveGroup } = useSignalR((sender, message, timestamp) => {
+  const { sendMessage, connection, joinGroup, leaveGroup } = useSignalR((sender, message, timestamp) => {
     setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
   });
 
@@ -34,13 +34,13 @@ const ChatScreen = ({ route }) => {
     fetchMessages();
 
     if (connection) {
-      console.log('Joining group - ${users[0]};${users[1]}', connection);
-      connection.invoke('JoinGroup', `${users[0]};${users[1]}`).catch((err) => console.log("-----",err));
+      const groupName = `${users[0]};${users[1]}`;
+      console.log(`Joining group - ${groupName}`, connection);
+      joinGroup(groupName).catch((err) => console.log(err));
 
       return () => {
         console.log('Leaving group');
-        connection.off('ReceiveMessage');
-        connection.invoke('LeaveGroup', `${users[0]};${users[1]}`).catch((err) => console.log("------",err));
+        leaveGroup(groupName).catch((err) => console.log(err));
       };
     }
   }, [email, otherUserEmail, connection]);

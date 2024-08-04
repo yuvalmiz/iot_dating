@@ -1,3 +1,6 @@
+import variables from "./services/staticVariables";
+const { local } = variables();
+
 const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.now()}.png`) => {
   try {
     const response = await fetch(uri);
@@ -8,7 +11,9 @@ const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.n
       reader.onloadend = async () => {
         const base64data = reader.result.split(',')[1];
 
-        const uploadResponse = await fetch('http://localhost:7071/api/UploadToBlob', {
+        url = local ? 'http://localhost:7071/api/UploadToBlob' : 'https://functionappdatingiot.azurewebsites.net/api/uploadtoblob';
+
+        const uploadResponse = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -39,8 +44,9 @@ const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.n
 
 const insertIntoTable = async (tableName, entity) => {
   console.log('Inserting into table:', tableName, entity);
+  url = local ? 'http://localhost:7071/api/InsertIntoTable' : 'https://functionappdatingiot.azurewebsites.net/api/insertintotable';
   try {
-    const response = await fetch('http://localhost:7071/api/InsertIntoTable', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -60,8 +66,9 @@ const insertIntoTable = async (tableName, entity) => {
 
 const readFromTable = async (tableName, queryFilter = '') => {
   console.log('Reading from table:', tableName, queryFilter);
+  url = local ? 'http://localhost:7071/api/ReadFromTable' : 'https://functionappdatingiot.azurewebsites.net/api/readfromtable';
   try {
-    const response = await fetch('http://localhost:7071/api/ReadFromTable', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -100,8 +107,10 @@ const getMessages = async (user1, user2) => {
 };
 
 const sendPdfViaEmail = async (pdfBase64, email) => {
+  console.log('Sending PDF via email:', email);
+  url = local ? 'http://localhost:7071/api/SendPDFByEmail' : 'https://functionappdatingiot.azurewebsites.net/api/sendpdfbyemail';
   try {
-    const response = await fetch('http://localhost:7071/api/SendPDFByEmail', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

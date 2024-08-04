@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import variables from './staticVariables';
 
 const useSignalR = (onMessageReceived) => {
   const [connection, setConnection] = useState(null);
+  const { local } = variables();
 
   useEffect(() => {
     const negotiate = async () => {
       try {
-        const response = await fetch('http://localhost:7071/api/negotiate');
+        url = local ? 'http://localhost:7071/api/negotiate' : 'https://functionappdatingiot.azurewebsites.net/api/negotiate';
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Negotiation error: ${response.statusText}`);
         }
-        const connectionInfo = await response.json();
+        const connectionInfo = response.json();
 
         const newConnection = new HubConnectionBuilder()
           .withUrl(connectionInfo.url, {
@@ -42,7 +45,20 @@ const useSignalR = (onMessageReceived) => {
     };
   }, []);
 
+  const joinGroup = async (groupName) => {
+    if (connection) {
+      await connection.invoke('JoinGroup', groupName);
+    }
+  };
+
+  const leaveGroup = async (groupName) => {
+    if (connection) {
+      await connection.invoke('LeaveGroup', groupName);
+    }
+  };
+
   const sendMessage = async (user, otherUser, message, timestamp) => {
+    url = local ? 'http://localhost:7071/api/sendMessage' : 'https://functionappdatingiot.azurewebsites.net/api/sendmessage';
     try {
       const response = await fetch('http://localhost:7071/api/sendMessage', {
         method: 'POST',
@@ -65,7 +81,7 @@ const useSignalR = (onMessageReceived) => {
     }
   };
 
-  return { sendMessage, connection };
+  return { sendMessage, connection, joinGroup, leaveGroup };
 };
 
 export default useSignalR;
