@@ -8,9 +8,10 @@ const SharedStateProvider = ({ children }) => {
   const [otherEmail, setOtherEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [seats, setSeats] = useState('');
 
   
-  useEffect(() => {
+  useEffect(async () => {
     const storedEmail = localStorage.getItem('userEmail');
     if (storedEmail) {
       setEmail(storedEmail);
@@ -39,10 +40,29 @@ const SharedStateProvider = ({ children }) => {
     setLastName(lastName);
     localStorage.setItem('userLastName', lastName);
   }
+  const saveSeats = (seats) => {
+    console.log('Saving seats:', seats);
+    setSeats(seats);
+  }
 
+  const saveOtherEmail = async (otherEmail) => {
+    console.log('Saving other email:', otherEmail);
+    setOtherEmail(otherEmail);
+  }
 
   return (
-    <SharedStateContext.Provider value={{ email, setEmail: saveEmail, firstName, setFirstName: saveFirstName, lastName, setLastName: saveLastName }}>
+    <SharedStateContext.Provider value={{
+      email,
+      setEmail: saveEmail,
+      firstName,
+      setFirstName: saveFirstName,
+      lastName,
+      setLastName: saveLastName,
+      seats,
+      setSeats: saveSeats,
+      setOtherEmail: saveOtherEmail,
+      otherEmail
+      }}>
 
       {children}
     </SharedStateContext.Provider>

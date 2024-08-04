@@ -26,7 +26,7 @@ const ManagerMapScreen = ({ route }) => {
 
   const fetchMap = async () => {
     try {
-      const rowKeyPrefix = "map_";
+      const rowKeyPrefix = "map";
       const queryFilter = `PartitionKey eq '${barName}' and RowKey ge '${rowKeyPrefix}' and RowKey lt '${rowKeyPrefix}~'`;
       const fetchedMap = await readFromTable('BarTable', queryFilter);
       setImageUrl(fetchedMap[0].url);
@@ -56,7 +56,7 @@ const ManagerMapScreen = ({ route }) => {
     };
 
     try {
-      await insertIntoTable('BarTable', seat);
+      await insertIntoTable({tableName :'BarTable',entity: seat});
       setSeats([...seats, seat]);
     } catch (error) {
       console.error('Error adding seat:', error);

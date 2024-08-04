@@ -50,6 +50,7 @@ export default function LoginScreen({ navigation }) {
   useEffect(() => {
     const fetchUserInfo = async (accessToken) => {
       try {
+        console.log('Fetching user info...');
         const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });

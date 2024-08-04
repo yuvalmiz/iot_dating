@@ -1,44 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
-import { Camera } from 'expo-camera';
+import React, { useState, useContext } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { QrReader } from 'react-qr-reader';
+import { useNavigation } from '@react-navigation/native';
+import { insertIntoTable } from '../api';
+import { SharedStateContext} from '../context';
 
-export default function QRCodeScannerScreen() {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [scanned, setScanned] = useState(false);
-  const [scannedData, setScannedData] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
+export default function MyQRCodeScannerScreen() {
+  const [data, setData] = useState('No result');
+  const navigation = useNavigation();
+  const { email } = useContext(SharedStateContext);
 
-  const handleBarCodeScanned = ({ type, data }) => {
-    setScanned(true);
-    setScannedData(data);
-    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+  const handleScan = async (data) => {
+    if (data) {
+      console.log('Scanned data:', data);
+      const barName = data.split(';')[0];
+      console.log('Bar ID:', barName);
+      const seatName = data.split(';')[1];
+      console.log('Seat ID:', seatName);
+      const updatedSeat = {
+        PartitionKey: barName,
+        RowKey: seatName,
+        connectedUser: email
+      };
+      await insertIntoTable({tableName: 'BarTable', entity:updatedSeat, action: 'update'}); 
+      navigation.navigate('ViewMap');
+    }
   };
 
-  if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
-  }
-  if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
+  const handleError = (err) => {
+    console.error(err);
+    Alert.alert('Error', 'Failed to scan QR code.');
+  };
 
   return (
     <View style={styles.container}>
-      <Camera
-        style={StyleSheet.absoluteFillObject}
-        type={type}
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-      />
-      {scanned && (
-        <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />
-      )}
-      {scannedData && <Text>Scanned Data: {scannedData}</Text>}
+      <Text style={styles.instructions}>
+        Align the QR code within the frame to scan.
+      </Text>
+      <View style={styles.qrReaderContainer}>
+        <QrReader
+          onResult={(result, error) => {
+            if (!!result) {
+              setData(result?.text);
+              handleScan(result?.text);
+            }
+          }}
+          style={styles.qrReader}
+        />
+      </View>
+      {data && <Text>Scanned Data: {data}</Text>}
     </View>
   );
 }
@@ -46,7 +57,17 @@ export default function QRCodeScannerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  instructions: {
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  qrReaderContainer: {
+    width: '100%',
+    height: '70%',
+  },
+  qrReader: {
+
   },
 });

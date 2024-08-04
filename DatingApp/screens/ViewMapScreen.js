@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, StyleSheet, Dimensions, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { G, Circle, Text as SvgText } from 'react-native-svg';
 import { readFromTable } from '../api';
+import { SharedStateContext } from '../context';
 
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
 const ViewMapScreen = ({ navigation }) => {
-  const handleMessageReceived = (user, message) => {
-    console.log('New message received:', user, message);
-  };
   const [seats, setSeats] = useState([]);
   const [imageUrl, setImageUrl] = useState('');
   const [imageLayout, setImageLayout] = useState(null);
@@ -21,6 +19,7 @@ const ViewMapScreen = ({ navigation }) => {
       try {
         const queryFilter = `PartitionKey eq 'bar_1' and RowKey ge 'seat_' and RowKey lt 'seat_~'`;
         const fetchedSeats = await readFromTable('BarTable', queryFilter);
+        fetchedSeats.sort((a, b) => parseInt(a.RowKey.split('_')[1]) - parseInt(b.RowKey.split('_')[1]));
         setSeats(fetchedSeats);
       } catch (error) {
         console.error('Error fetching seats:', error);
@@ -31,7 +30,7 @@ const ViewMapScreen = ({ navigation }) => {
 
   const fetchMap = async () => {
     try {
-      const rowKeyPrefix = "map_";
+      const rowKeyPrefix = "map";
       const queryFilter = `PartitionKey eq 'bar_1' and RowKey ge '${rowKeyPrefix}' and RowKey lt '${rowKeyPrefix}~'`;
       const fetchedMap = await readFromTable('BarTable', queryFilter);
       setImageUrl(fetchedMap[0].url);
@@ -49,26 +48,41 @@ const ViewMapScreen = ({ navigation }) => {
     fetchMap();
   }, []);
 
+  useEffect(() => {
+    const handleDimensionChange = () => {
+      setImageLayout(null);
+    };
+    Dimensions.addEventListener('change', handleDimensionChange);
+
+    return () => {
+      Dimensions.removeEventListener('change', handleDimensionChange);
+    };
+  }, []);
+
   const onImageLayout = (event) => {
-    const { x, y, width, height } = event.nativeEvent.layout;
-    const aspectRatio = imageDimensions.width / imageDimensions.height;
-    let displayWidth, displayHeight;
-
-    if (width / height > aspectRatio) {
-      displayHeight = height;
-      displayWidth = height * aspectRatio;
-    } else {
-      displayWidth = width;
-      displayHeight = width / aspectRatio;
-    }
-
-    setImageLayout({ x, y, width, height, displayWidth, displayHeight });
+    const { x, y, width: maxWidth, height: maxHeight } = event.nativeEvent.layout;
+    Image.getSize(imageUrl, (naturalWidth, naturalHeight) => {
+      const aspectRatio = naturalWidth / naturalHeight;
+      let displayWidth, displayHeight;
+      if (maxWidth / maxHeight > aspectRatio) {
+        displayHeight = maxHeight;
+        displayWidth = maxHeight * aspectRatio;
+      } else {
+        displayWidth = maxWidth;
+        displayHeight = maxWidth / aspectRatio;
+      }
+      setImageLayout({ maxWidth, maxHeight, displayWidth, displayHeight });
+      setImageDimensions({ width: naturalWidth, height: naturalHeight });
+    });
   };
 
-  const calculateSeatPosition = (seat, layout) => ({
-    cx: seat.x * layout.displayWidth,
-    cy: seat.y * layout.displayHeight,
-  });
+  const calculateSeatPosition = (seat) => {
+    const paddingX = (imageLayout.maxWidth - imageLayout.displayWidth) / 2;
+    const paddingY = (imageLayout.maxHeight - imageLayout.displayHeight) / 2;
+    const cx = paddingX + seat.x_position * imageLayout.displayWidth;
+    const cy = paddingY + seat.y_position * imageLayout.displayHeight;
+    return { cx, cy };
+  };
 
   return (
     <View style={styles.container}>
@@ -83,18 +97,32 @@ const ViewMapScreen = ({ navigation }) => {
               onLayout={onImageLayout}
             />
             {imageLayout && (
-              <Svg style={[styles.svg, { width: imageLayout.width, height: imageLayout.height }]}>
+              <Svg style={[styles.svg, { width: imageLayout.maxWidth, height: imageLayout.maxHeight }]}>
                 {seats.map((seat, index) => {
-                  const { cx, cy } = calculateSeatPosition(seat, imageLayout);
+                  const { cx, cy } = calculateSeatPosition(seat);
                   return (
-                    <Circle
+                    <G
                       key={index}
-                      cx={cx}
-                      cy={cy}
-                      r={0.01 * Math.min(screenWidth, screenHeight)}
-                      fill={seat.connectedUser ? 'green' : 'red'}
                       onPress={() => seat.connectedUser && navigation.navigate('Chat', { otherUserEmail: seat.connectedUser })}
-                    />
+                    >
+                      <Circle
+                        cx={cx}
+                        cy={cy}
+                        r={10 * imageLayout.displayWidth / imageDimensions.width}
+                        fill={seat.connectedUser ? 'green' : 'red'}
+                      />
+                      <SvgText
+                        x={cx}
+                        y={cy}
+                        fill="white"
+                        fontSize={12 * imageLayout.displayWidth / imageDimensions.width}
+                        fontWeight="bold"
+                        textAnchor="middle"
+                        dy=".3em"
+                      >
+                        {index + 1}
+                      </SvgText>
+                    </G>
                   );
                 })}
               </Svg>

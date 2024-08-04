@@ -1,9 +1,12 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons'; 
+import { SharedStateContext } from '../context';
 
 const ManagerScreen = () => {
+  const { firstName, setFirstName } = useContext(SharedStateContext);
+  const { lastName, setLastName } = useContext(SharedStateContext);
   const navigation = useNavigation();
 
   const handleGenerateQRCode = () => {
@@ -24,6 +27,8 @@ const ManagerScreen = () => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Welcome Back!</Text>
+      <Text style={styles.subtitle}>Hello, {firstName} {lastName}!</Text>
       <TouchableOpacity style={styles.button} onPress={handleGenerateQRCode}>
         <FontAwesome name="qrcode" size={24} color="white" />
         <Text style={styles.buttonText}>Generate QR Code</Text>
@@ -36,10 +41,10 @@ const ManagerScreen = () => {
         <FontAwesome name="plus" size={24} color="white" />
         <Text style={styles.buttonText}>Create New Seats</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleViewMap }>
+      {/* <TouchableOpacity style={styles.button} onPress={handleViewMap }>
         <FontAwesome name="sign-out" size={24} color="white" />
         <Text style={styles.buttonText}>ViewMap</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 };
@@ -51,6 +56,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#f0f0f0',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
   },
   button: {
     flexDirection: 'row',

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, StyleSheet, ActivityIndicator, ScrollView, Text, Modal, TouchableOpacity } from 'react-native';
 import jsPDF from 'jspdf';
 import { saveAs } from 'file-saver';
 import { sendPdfViaEmail } from '../api';
+import variables from '../services/staticVariables'; 
+import { SharedStateContext } from '../context';
 
 export default function QRCodeGeneratorScreen() {
   const [numQrCodes, setNumQrCodes] = useState('');
@@ -11,17 +13,24 @@ export default function QRCodeGeneratorScreen() {
   const [pdfBlob, setPdfBlob] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+  const { local } = variables().local;
+  const { email } = useContext(SharedStateContext);
+  // const generateRandomData = () => {
+  //   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  //   let result = '';
+  //   const length = 10;
+  //   for (let i = 0; i < length; i++) {
+  //     result += characters.charAt(Math.floor(Math.random() * characters.length));
+  //   }
+  //   result += `-${Date.now()}`;
+  //   return result;
+  // };
 
-  const generateRandomData = () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    const length = 10;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    result += `-${Date.now()}`;
+  const generateDataForQRCode = (seatNumber) => {
+    const barId = "bar_1"
+    const result = barId + ";seat_" + seatNumber;
     return result;
-  };
+  }
 
   const validateInputs = () => {
     const numQrCodesInt = parseInt(numQrCodes);
@@ -50,9 +59,11 @@ export default function QRCodeGeneratorScreen() {
     setLoading(true);
     const qrCodeUrls = [];
     for (let i = 0; i < parseInt(numQrCodes); i++) {
-      const data = generateRandomData();
+      // const data = generateRandomData();
+      const data = generateDataForQRCode(i + 1);
       try {
-        const response = await fetch(`http://localhost:7071/api/GenerateQRCode?data=${encodeURIComponent(data)}`, {
+        url = local ? 'http://localhost:7071/api/GenerateQRCode' : 'https://functionappdatingiot.azurewebsites.net/api/GenerateQRCode';
+        const response = await fetch(`${url}?data=${encodeURIComponent(data)}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -82,15 +93,20 @@ export default function QRCodeGeneratorScreen() {
     const qrSizeCm = parseFloat(qrSize); // Convert size to cm
     const qrSizePx = qrSizeCm * 10; // Convert cm to mm for jsPDF
     const margin = 10; // Margin between QR codes
-
+  
     for (let i = 0; i < qrCodeUrls.length; i++) {
       const imgData = qrCodeUrls[i];
+  
+      // Add seat title above the QR code
+      doc.text(`Seat ${i + 1}`, x + qrSizePx / 2, y - 3, { align: 'center' });
+  
+      // Add the QR code
       doc.addImage(imgData, 'JPEG', x, y, qrSizePx, qrSizePx);
-
+  
       x += qrSizePx + margin;
       if (x + qrSizePx > doc.internal.pageSize.width) {
         x = 10;
-        y += qrSizePx + margin;
+        y += qrSizePx + margin + 10; // Adjust to account for the title height
       }
       if (y + qrSizePx > doc.internal.pageSize.height) {
         doc.addPage();
@@ -98,11 +114,12 @@ export default function QRCodeGeneratorScreen() {
         y = 10;
       }
     }
-
+  
     const pdfBlob = new Blob([doc.output('blob')], { type: 'application/pdf' });
     saveAs(pdfBlob, 'QRCode.pdf');
     setPdfBlob(pdfBlob);
   };
+  
 
   const sendPdfViaEmailHandler = async () => {
     try {
@@ -111,8 +128,8 @@ export default function QRCodeGeneratorScreen() {
       reader.onloadend = async () => {
         const base64data = reader.result.split(',')[1];
 
-        const response = await sendPdfViaEmail(base64data, 'yuvalmor24@gmail.com');
-        setModalMessage('PDF sent via email successfully to yuvalmor24@gmail.com.');
+        const response = await sendPdfViaEmail(base64data, email);
+        setModalMessage('PDF sent via email successfully to ' + email);
         setShowModal(true);
       };
     } catch (error) {

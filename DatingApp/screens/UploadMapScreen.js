@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Image, Alert, Text, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadToBlob } from '../api';
+import { uploadToBlob , insertIntoTable, readFromTable} from '../api';
 
 const UploadMapScreen = () => {
   const [image, setImage] = useState(null);
@@ -17,9 +17,14 @@ const UploadMapScreen = () => {
     fetchExistingMap();
   }, []);
 
-  const fetchExistingMap = () => {
+  const fetchExistingMap = async () => {
     const timestamp = new Date().getTime();
-    setExistingMap(`${blobUrl}?t=${timestamp}`);
+    map_url = await readFromTable('BarTable', `PartitionKey eq '${barId}' and RowKey eq 'map'`);
+    console.log("Map URL: ", map_url[0].url);
+    if (map_url.length > 0)
+      setExistingMap(`${map_url[0].url}?t=${timestamp}`);
+    else
+      setExistingMap(null);
   };
 
   const pickImage = async () => {
@@ -50,6 +55,16 @@ const UploadMapScreen = () => {
       setLoading(true);
       const blobName = `${barId}_map.png`;
       const url = await uploadToBlob(image, 'maps', blobName);
+      const map = {
+        PartitionKey: barId,
+        RowKey: 'map',
+        url,
+      };
+      if (existingMap) {
+        await insertIntoTable({ tableName: 'BarTable', entity: map, action: 'update' });
+      } else {
+        await insertIntoTable({ tableName: 'BarTable', entity: map });
+      }
 
       Alert.alert('Map uploaded successfully', `URL: ${url}`);
       setImage(null);

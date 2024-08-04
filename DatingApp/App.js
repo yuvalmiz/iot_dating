@@ -6,7 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SharedStateProvider, SharedStateContext } from './context'; // Import the provider
 import LoginScreen from './screens/LoginScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
-import QRCodeScannerScreen from './screens/QRCodeScannerScreen';
+import MyQRCodeScannerScreen from './screens/QRCodeScannerScreen';
 import InteractiveImageWrapper from './screens/InteractiveImageWrapper';
 import ManagerScreen from './screens/ManagerScreen';
 import UploadMapScreen from './screens/UploadMapScreen';
@@ -93,10 +93,10 @@ export default function App() {
           })}
         >
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
-          <Stack.Screen name="Manager" component={ManagerScreen} />
+          <Stack.Screen name="Manager" component={ManagerScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="UploadMap" component={UploadMapScreen} />
           <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} />
-          <Stack.Screen name="QRCodeScanner" component={QRCodeScannerScreen} />
+          <Stack.Screen name="QRCodeScanner" component={MyQRCodeScannerScreen} />
           <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="ManagerMap" component={ManagerMapScreen} />

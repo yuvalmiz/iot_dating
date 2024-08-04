@@ -15,7 +15,7 @@ export default function CreateProfileScreen({ navigation }) {
   const [interests, setInterests] = useState('');
   const [profilePicture, setProfilePicture] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { email } = useContext(SharedStateContext);
+  const { email, setFirstName: setFirstNameInState, setLastName: setLastNameInState} = useContext(SharedStateContext);
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -59,11 +59,15 @@ export default function CreateProfileScreen({ navigation }) {
       interests,
       profilePictureUrl,
     };
-    setFirstName(firstName);
-    setLastName(lastName);
+    setFirstNameInState(firstName);
+    setLastNameInState(lastName);
     try {
-      await insertIntoTable('BarTable', userProfile);
-      navigation.navigate('User Menu');
+      await insertIntoTable({tableName: 'BarTable', entity: userProfile});
+      if (email === 'yuval.amit.dahan.yuval@gmail.com') {
+        navigation.navigate('Manager');
+      } else {
+        navigation.navigate('User Menu');
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile.');
     } finally {

@@ -1,42 +1,12 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
 import { SharedStateContext } from '../context';
-import { readFromTable } from '../api';
-import { useFocusEffect } from '@react-navigation/native';
 
 export default function UserMenuScreen({ navigation }) {
-  const { email, setEmail } = useContext(SharedStateContext);
-  const { firstName, setFirstName } = useContext(SharedStateContext);
-  const { lastName, setLastName } = useContext(SharedStateContext);
+  const { email } = useContext(SharedStateContext);
+  const { firstName } = useContext(SharedStateContext);
+  const { lastName } = useContext(SharedStateContext);
   const [showBackModal, setShowBackModal] = useState(false);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        setShowBackModal(true);
-        return true;
-      };
-
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [])
-  );
-
-  // async function getUser(email) {
-  //   const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
-  //   const user = await readFromTable('BarTable', queryFilter);
-  //   return user;
-  // }
-
-  const handleLogout = () => {
-    setEmail('');
-    setFirstName('');
-    setLastName('');
-    setShowBackModal(false);
-    navigation.navigate('Login');
-  };
-
   const handleCancel = () => {
     setShowBackModal(false);
   };
@@ -50,10 +20,10 @@ export default function UserMenuScreen({ navigation }) {
         onPress={() => navigation.navigate('ViewMap', { email })}
       >
         <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/settings.png' }}
+          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/map.png' }}
           style={styles.icon}
         />
-        <Text style={styles.buttonText}>Go to Settings</Text>
+        <Text style={styles.buttonText}>View Bar Map</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.button}
@@ -67,39 +37,14 @@ export default function UserMenuScreen({ navigation }) {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('ManagerMap', { email })}
+        onPress={() => navigation.navigate('Settings', { email })}
       >
         <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/map.png' }}
+          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/settings.png' }}
           style={styles.icon}
         />
-        <Text style={styles.buttonText}>View Bar Map</Text>
+        <Text style={styles.buttonText}>Settings</Text>
       </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showBackModal}
-        onRequestClose={handleCancel}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Are you sure you want to log out?</Text>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.buttonYes]}
-              onPress={handleLogout}
-            >
-              <Text style={styles.buttonText}>Yes</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, styles.buttonNo]}
-              onPress={handleCancel}
-            >
-              <Text style={styles.buttonText}>No</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

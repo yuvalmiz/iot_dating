@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Text, Button } from 'react-native';
 import InteractiveImage from './InteractiveImage';
-import { readFromTable } from '../api';
+import { insertIntoTable, readFromTable } from '../api';
+import { SharedStateContext } from '../context';
+
 
 const InteractiveImageWrapper = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [loaded, setLoaded] = useState(false);
   const [activated, setActivated] = useState(false);
   const [toggleText, setToggleText] = useState('Activate seat creation');
-
-  const handleSeatClick = (index) => {
-    // Implement logic to show user information for the seat
-    console.log(`Seat clicked: ${index}`);
-  };
+  const {seats, setSeats} = useContext(SharedStateContext);
+  const [prevSeat, setPrevSeat] = useState(null);
 
   useEffect(() => {
     const partitionKey = "bar_1";
     const fetchMap = async () => {
       try {
-        const rowKeyPrefix = "map_";
+        const rowKeyPrefix = "map";
         const queryFilter = `PartitionKey eq '${partitionKey}' and RowKey ge '${rowKeyPrefix}' and RowKey lt '${rowKeyPrefix}~'`;
         const fetchedMap = await readFromTable('BarTable', queryFilter);
         setImageUrl(fetchedMap[0].url);
@@ -31,6 +30,21 @@ const InteractiveImageWrapper = () => {
     fetchMap();
   }, []);
 
+  useEffect(() => {
+    const barName = 'bar_1';
+    const fetchSeats = async () => {
+      try {
+        const queryFilter = `PartitionKey eq '${barName}' and RowKey ge 'seat_' and RowKey lt 'seat_~'`;
+        const fetchedSeats = await readFromTable('BarTable', queryFilter);
+        setPrevSeat(fetchedSeats);
+        setSeats(fetchedSeats);
+      } catch (error) {
+        console.error('Error fetching seats:', error);
+      }
+    };
+    fetchSeats();
+  }, []);
+
   const toggleTextAndActivate = () => {
     if (!activated) {
       setActivated(true);
@@ -41,6 +55,34 @@ const InteractiveImageWrapper = () => {
     }
   };
 
+  const handleUndo = () => {
+    if (seats.length == prevSeat.length) {
+      return;
+    }
+    const new_seats = seats.slice(0, seats.length - 1);
+    setSeats(new_seats);
+  };
+
+
+  const handleConfirm = () => {
+    console.log('Seats to be saved:', seats);
+    seats.forEach(seat => {
+      if (prevSeat.includes(seat)) {
+        return;
+      }
+      insertIntoTable({tableName: 'BarTable', entity: seat});
+    });
+    setPrevSeat(seats);
+    setActivated(false);
+    // Implement the logic to save seats to Azure
+  };
+
+  const handleCancel = () => {
+    setSeats(prevSeat);
+    setActivated(false);
+    setToggleText('Activate seat creation');
+  };
+
   return (
     <View style={styles.container}>
       <Button title={toggleText} onPress={toggleTextAndActivate} />
@@ -48,13 +90,20 @@ const InteractiveImageWrapper = () => {
         <View style={styles.imageContainer}>
           <InteractiveImage
             imageUrl={imageUrl}
-            onSeatClick={handleSeatClick}
             activated={activated}
-            barName="bar_1" // Replace with the actual bar name
+            barName="bar_1"
+            seats={seats}
           />
         </View>
       ) : (
         <Text>Loading...</Text>
+      )}
+      {activated && (
+        <View style={styles.buttonContainer}>
+          <Button title="Confirm" onPress={handleConfirm} />
+          <Button title="Undo" onPress={handleUndo} />
+          <Button title="Cancel" onPress={handleCancel} />
+        </View>
       )}
     </View>
   );
@@ -70,6 +119,12 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 1,
     width: '100%',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    padding: 10,
   },
 });
 

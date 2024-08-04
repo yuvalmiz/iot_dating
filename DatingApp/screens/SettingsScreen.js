@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadToBlob, readFromTable, insertIntoTable } from '../api';
 import { SharedStateContext } from '../context';
@@ -40,7 +40,7 @@ export default function SettingsScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    if (!profileData.firstName || !profileData.lastName || !profileData.gender || !profileData.birthdate) {
+    if (!profileData.firstName || !profileData.lastName || !profileData.gender) {
       Alert.alert('Error', 'Please fill all mandatory fields.');
       return;
     }
@@ -58,7 +58,9 @@ export default function SettingsScreen({ navigation }) {
       profilePictureUrl,
     };
 
-    await insertIntoTable('BarTable', updatedProfile);
+    await insertIntoTable({tableName: 'BarTable', entity:updatedProfile, action:'update'});
+    setFirstName(profileData.firstName);
+    setLastName(profileData.lastName);
     Alert.alert('Success', 'Profile updated successfully.');
     setLoading(false);
   };

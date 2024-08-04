@@ -42,7 +42,7 @@ const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.n
   }
 };
 
-const insertIntoTable = async (tableName, entity) => {
+const insertIntoTable = async ({tableName, entity, action = "create"}) => {
   console.log('Inserting into table:', tableName, entity);
   url = local ? 'http://localhost:7071/api/InsertIntoTable' : 'https://functionappdatingiot.azurewebsites.net/api/insertintotable';
   try {
@@ -54,6 +54,7 @@ const insertIntoTable = async (tableName, entity) => {
       body: JSON.stringify({
         table_name: tableName,
         entity: entity,
+        action: action,
       }),
     });
     const text = await response.text();
@@ -66,7 +67,7 @@ const insertIntoTable = async (tableName, entity) => {
 
 const readFromTable = async (tableName, queryFilter = '') => {
   console.log('Reading from table:', tableName, queryFilter);
-  url = local ? 'http://localhost:7071/api/ReadFromTable' : 'https://functionappdatingiot.azurewebsites.net/api/readfromtable';
+  url = local ? 'http://localhost:7071/api/ReadFromTable' : 'https://functionappdatingiot.azurewebsites.net/api/ReadFromTable?';
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -76,7 +77,7 @@ const readFromTable = async (tableName, queryFilter = '') => {
       body: JSON.stringify({
         table_name: tableName,
         query_filter: queryFilter,
-      }),
+      })
     });
     const json = await response.json();
     return json;

@@ -11,10 +11,10 @@ const ChatScreen = ({ route }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const users = [email, otherUserEmail].sort();
-
-  const { sendMessage, connection, joinGroup, leaveGroup } = useSignalR((sender, message, timestamp) => {
+  const { sendMessage, connection, joinGroup, leaveGroup } = useSignalR({ onMessageReceived: (sender, message, timestamp) => {
     setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
-  });
+  }, otherEmail: otherUserEmail });
+
 
   useEffect(() => {
     const fetchMessages = async () => {
