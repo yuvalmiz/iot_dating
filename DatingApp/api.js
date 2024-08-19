@@ -42,7 +42,7 @@ const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.n
   }
 };
 
-const insertIntoTable = async ({tableName, entity, action = "create"}) => {
+const insertIntoTable = async ({ tableName, entity, action = "create" }) => {
   console.log('Inserting into table:', tableName, entity);
   url = local ? 'http://localhost:7071/api/InsertIntoTable' : 'https://functionappdatingiot.azurewebsites.net/api/insertintotable';
   try {
@@ -87,6 +87,29 @@ const readFromTable = async (tableName, queryFilter = '') => {
   }
 };
 
+const deleteFromTable = async ({ tableName, partitionKey, rowKey }) => {
+  console.log('Deleting from table:', tableName, partitionKey, rowKey);
+  url = local ? 'http://localhost:7071/api/DeleteFromTable' : 'https://functionappdatingiot.azurewebsites.net/api/deletefromtable';
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        table_name: tableName,
+        partition_key: partitionKey,
+        row_key: rowKey,
+      }),
+    });
+    const text = await response.text();
+    return text;
+  } catch (error) {
+    console.error('Error deleting from table:', error);
+    throw error;
+  }
+};
+
 const saveMessage = async (user1, user2, message) => {
   const users = [user1, user2].sort();
   const partitionKey = `${users[0]};${users[1]}`;
@@ -97,7 +120,7 @@ const saveMessage = async (user1, user2, message) => {
     User: user1,
     Message: message,
   };
-  return await insertIntoTable('BarTable', entity);
+  return await insertIntoTable({ tableName: 'BarTable', entity });
 };
 
 const getMessages = async (user1, user2) => {
@@ -134,4 +157,4 @@ const sendPdfViaEmail = async (pdfBase64, email) => {
   }
 };
 
-export { saveMessage, getMessages, insertIntoTable, readFromTable, uploadToBlob, sendPdfViaEmail };
+export { saveMessage, getMessages, insertIntoTable, readFromTable, deleteFromTable, uploadToBlob, sendPdfViaEmail };

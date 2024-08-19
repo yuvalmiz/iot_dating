@@ -13,24 +13,13 @@ export default function QRCodeGeneratorScreen() {
   const [pdfBlob, setPdfBlob] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const { local } = variables().local;
-  const { email } = useContext(SharedStateContext);
-  // const generateRandomData = () => {
-  //   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  //   let result = '';
-  //   const length = 10;
-  //   for (let i = 0; i < length; i++) {
-  //     result += characters.charAt(Math.floor(Math.random() * characters.length));
-  //   }
-  //   result += `-${Date.now()}`;
-  //   return result;
-  // };
+  const { local } = variables();
+  const { email, selectedBar } = useContext(SharedStateContext); // Access the selected bar
 
   const generateDataForQRCode = (seatNumber) => {
-    const barId = "bar_1"
-    const result = barId + ";seat_" + seatNumber;
+    const result = selectedBar + ";seat_" + seatNumber;
     return result;
-  }
+  };
 
   const validateInputs = () => {
     const numQrCodesInt = parseInt(numQrCodes);
@@ -59,10 +48,9 @@ export default function QRCodeGeneratorScreen() {
     setLoading(true);
     const qrCodeUrls = [];
     for (let i = 0; i < parseInt(numQrCodes); i++) {
-      // const data = generateRandomData();
       const data = generateDataForQRCode(i + 1);
       try {
-        url = local ? 'http://localhost:7071/api/GenerateQRCode' : 'https://functionappdatingiot.azurewebsites.net/api/GenerateQRCode';
+        const url = local ? 'http://localhost:7071/api/GenerateQRCode' : 'https://functionappdatingiot.azurewebsites.net/api/GenerateQRCode';
         const response = await fetch(`${url}?data=${encodeURIComponent(data)}`, {
           method: 'GET',
           headers: {
@@ -153,7 +141,7 @@ export default function QRCodeGeneratorScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>QR Code Generator</Text>
+      <Text style={styles.title}>Generate QR Codes</Text>
       <Text style={styles.description}>
         Enter the number of QR codes you want to generate (up to 100). Choose the size of the QR codes in cm.
       </Text>

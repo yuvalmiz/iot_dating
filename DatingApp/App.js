@@ -3,7 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Image, Modal, Text } from 'react-na
 import React, { useContext, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { SharedStateProvider, SharedStateContext } from './context'; // Import the provider
+import { SharedStateProvider, SharedStateContext } from './context';
 import LoginScreen from './screens/LoginScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
 import MyQRCodeScannerScreen from './screens/QRCodeScannerScreen';
@@ -16,13 +16,13 @@ import CreateProfileScreen from './screens/CreateProfileScreen';
 import UserMenuScreen from './screens/UserMenuScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import ViewMapScreen from './screens/ViewMapScreen';
+import BarMapSeatManagerScreen from './screens/BarMapSeatManagerScreen';
+import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
 
 const Stack = createStackNavigator();
 
 function LogoutButton({ navigation }) {
-  const { setEmail } = useContext(SharedStateContext);
-  const { setFirstName } = useContext(SharedStateContext);
-  const { setLastName } = useContext(SharedStateContext);
+  const { setEmail, setFirstName, setLastName, setSelectedBar, setManagedBars } = useContext(SharedStateContext);
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
@@ -34,6 +34,8 @@ function LogoutButton({ navigation }) {
     setEmail('');
     setFirstName('');
     setLastName('');
+    setSelectedBar('');
+    setManagedBars([]);
     navigation.navigate('Login');
   };
 
@@ -93,14 +95,16 @@ export default function App() {
           })}
         >
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
-          <Stack.Screen name="Manager" component={ManagerScreen} options={{ headerLeft: null }} />
-          <Stack.Screen name="UploadMap" component={UploadMapScreen} />
-          <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} />
-          <Stack.Screen name="QRCodeScanner" component={MyQRCodeScannerScreen} />
-          <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} />
+          <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection" , headerLeft: null }} />
+          <Stack.Screen name="Manager" component={ManagerScreen} />
+          <Stack.Screen name="UploadMap" component={UploadMapScreen} options={{ title: "Upload Map" }} />
+          <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
+          <Stack.Screen name="QRCodeScanner" component={MyQRCodeScannerScreen} options={{ title: "Scan QR Code" }} />
+          <Stack.Screen name="BarMapSeatManager" component={BarMapSeatManagerScreen} options={{ title: "Manage Seats" }} />
+          <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} options={{ title: "Create New Seats" }} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="ManagerMap" component={ManagerMapScreen} />
-          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
+          <Stack.Screen name="ManagerMap" component={ManagerMapScreen} options={{ title: "Map" }} />
+          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
           <Stack.Screen name="User Menu" component={UserMenuScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ViewMap" component={ViewMapScreen} />

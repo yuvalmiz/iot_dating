@@ -12,6 +12,7 @@ export default function LoginScreen({ navigation }) {
   const { firstName, setFirstName } = useContext(SharedStateContext);
   const { lastName, setLastName } = useContext(SharedStateContext);
   const { email, setEmail } = useContext(SharedStateContext);
+  const { setManagedBars } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
     webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
@@ -22,21 +23,49 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     const userProfile = async (email) => {
-      const queryFilter = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
-      const user = await readFromTable('BarTable', queryFilter);
-      return user
+      // Check if the user is a manager
+      const managerQuery = `PartitionKey eq 'Managers' and RowKey eq '${email}'`;
+      const managerData = await readFromTable('BarTable', managerQuery);
+
+      if (managerData.length > 0) {
+        return {
+          exists: true,
+          isManager: true,
+          firstName: managerData[0].firstName,
+          lastName: managerData[0].lastName,
+          managedBars: managerData[0].ManagedBars.split(','),
+        };
+      } else {
+        // Check if the user exists but is not a manager
+        const userQuery = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
+        const userData = await readFromTable('BarTable', userQuery);
+
+        if (userData.length > 0) {
+          return {
+            exists: true,
+            isManager: false,
+            firstName: userData[0].firstName,
+            lastName: userData[0].lastName,
+          };
+        } else {
+          return { exists: false };
+        }
+      }
     };
+
     if (!email) {
       return;
     }
+
     userProfile(email).then(async (user) => {
-      const exists = user.length > 0;
-      if (exists) {
-        setFirstName(user[0].firstName);
-        setLastName(user[0].lastName);
-        if (email === 'yuval.amit.dahan.yuval@gmail.com') {
+      if (user.exists) {
+        setFirstName(user.firstName);
+        setLastName(user.lastName);
+
+        if (user.isManager) {
+          setManagedBars(user.managedBars);
           console.log('Manager detected');
-          navigation.navigate('Manager');
+          navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
         } else {
           console.log('User detected');
           navigation.navigate('User Menu');
@@ -47,6 +76,7 @@ export default function LoginScreen({ navigation }) {
       }
     });
   }, [email]);
+
   useEffect(() => {
     const fetchUserInfo = async (accessToken) => {
       try {
@@ -64,7 +94,6 @@ export default function LoginScreen({ navigation }) {
         return null;
       }
     };
-
 
     if (response?.type === 'success') {
       const { authentication } = response;

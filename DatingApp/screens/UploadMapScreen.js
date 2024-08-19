@@ -1,30 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, Image, Alert, Text, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadToBlob , insertIntoTable, readFromTable} from '../api';
+import { uploadToBlob } from '../api';
+import { SharedStateContext } from '../context';
 
 const UploadMapScreen = () => {
   const [image, setImage] = useState(null);
   const [imagePicked, setImagePicked] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [existingMap, setExistingMap] = useState(null);
   const [showModal, setShowModal] = useState(false);
-
-  const barId = 'bar_1'; // Replace with the actual bar ID
-  const blobUrl = `https://datingappiotstorage.blob.core.windows.net/maps/${barId}_map.png`;
+  const { selectedBar } = useContext(SharedStateContext); // Get the current bar ID
+  const blobUrl = `https://datingappiotstorage.blob.core.windows.net/maps/${selectedBar}_map.png`;
 
   useEffect(() => {
     fetchExistingMap();
   }, []);
 
   const fetchExistingMap = async () => {
-    const timestamp = new Date().getTime();
-    map_url = await readFromTable('BarTable', `PartitionKey eq '${barId}' and RowKey eq 'map'`);
-    console.log("Map URL: ", map_url[0].url);
-    if (map_url.length > 0)
-      setExistingMap(`${map_url[0].url}?t=${timestamp}`);
-    else
-      setExistingMap(null);
+    try {
+      const response = await fetch(blobUrl);
+      if (response.ok) {
+        setExistingMap(`${blobUrl}?t=${new Date().getTime()}`); // Add timestamp to avoid caching
+      } else if (response.status === 404) {
+        setExistingMap(null); // Handle the case where the map doesn't exist
+      } else {
+        console.error('Unexpected response status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching map:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageLoad = () => {
+    setLoading(false); // Set loading to false once the image is fully loaded
   };
 
   const pickImage = async () => {
@@ -53,18 +64,8 @@ const UploadMapScreen = () => {
   const uploadImage = async () => {
     try {
       setLoading(true);
-      const blobName = `${barId}_map.png`;
+      const blobName = `${selectedBar}_map.png`;
       const url = await uploadToBlob(image, 'maps', blobName);
-      const map = {
-        PartitionKey: barId,
-        RowKey: 'map',
-        url,
-      };
-      if (existingMap) {
-        await insertIntoTable({ tableName: 'BarTable', entity: map, action: 'update' });
-      } else {
-        await insertIntoTable({ tableName: 'BarTable', entity: map });
-      }
 
       Alert.alert('Map uploaded successfully', `URL: ${url}`);
       setImage(null);
@@ -87,12 +88,20 @@ const UploadMapScreen = () => {
       <TouchableOpacity style={styles.button} onPress={pickImage}>
         <Text style={styles.buttonText}>Pick an image from camera roll</Text>
       </TouchableOpacity>
-      {existingMap && (
+
+      {loading && <ActivityIndicator size="large" color="#007bff" style={styles.loading} />}
+
+      {!loading && existingMap && (
         <View style={styles.existingMapContainer}>
           <Text style={styles.existingMapText}>Current Bar Map:</Text>
-          <Image source={{ uri: existingMap }} style={styles.image} />
+          <Image source={{ uri: existingMap }} style={styles.image} onLoad={handleImageLoad} />
         </View>
       )}
+
+      {!loading && !existingMap && (
+        <Text style={styles.noMapText}>No map currently exists for this bar.</Text>
+      )}
+
       {image && (
         <>
           <Image source={{ uri: image }} style={styles.image} />
@@ -101,10 +110,10 @@ const UploadMapScreen = () => {
           )}
         </>
       )}
+
       <TouchableOpacity style={[styles.button, (!image || loading) && styles.buttonDisabled]} onPress={handleUpload} disabled={!image || loading}>
         <Text style={styles.buttonText}>Upload Map</Text>
       </TouchableOpacity>
-      {loading && <ActivityIndicator size="large" color="#007bff" style={styles.loading} />}
 
       <Modal
         animationType="slide"
@@ -203,6 +212,12 @@ const styles = StyleSheet.create({
   existingMapText: {
     fontSize: 16,
     marginBottom: 10,
+  },
+  noMapText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginVertical: 20,
   },
   modalContainer: {
     flex: 1,
