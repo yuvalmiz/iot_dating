@@ -18,6 +18,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import ViewMapScreen from './screens/ViewMapScreen';
 import BarMapSeatManagerScreen from './screens/BarMapSeatManagerScreen';
 import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
+import UploadMenuScreen from './screens/UploadMenuScreen';
 
 const Stack = createStackNavigator();
 
@@ -108,6 +109,7 @@ export default function App() {
           <Stack.Screen name="User Menu" component={UserMenuScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ViewMap" component={ViewMapScreen} />
+          <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

@@ -54,6 +54,11 @@ const SharedStateProvider = ({ children }) => {
     setOtherEmail(otherEmail);
   };
 
+  const saveSelectedBar = (barId) => {
+    console.log('Saving selected bar:', barId);
+    setSelectedBar(barId);
+  };
+
   return (
     <SharedStateContext.Provider value={{
       email,
@@ -69,7 +74,7 @@ const SharedStateProvider = ({ children }) => {
       managedBars, // Provide managedBars
       setManagedBars, // Provide setManagedBars
       selectedBar, // Provide selectedBar
-      setSelectedBar, // Provide setSelectedBar
+      setSelectedBar: saveSelectedBar, // Provide setSelectedBar
     }}>
       {children}
     </SharedStateContext.Provider>

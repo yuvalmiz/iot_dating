@@ -6,10 +6,21 @@ export default function UserMenuScreen({ navigation }) {
   const { email } = useContext(SharedStateContext);
   const { firstName } = useContext(SharedStateContext);
   const { lastName } = useContext(SharedStateContext);
+  const {setSelectedBar} = useContext(SharedStateContext);
   const [showBackModal, setShowBackModal] = useState(false);
   const handleCancel = () => {
     setShowBackModal(false);
   };
+
+  // const getEmail = (num) => {
+  //   if (num === 1) {
+  //     return email;
+  //   }
+  //   if (email === 'yuval32211@gmail.com') {
+  //     return 'yuvalmizrahi@mail.tau.ac.il';
+  //   }
+  //   return 'yuval32211@gmail.com';
+  // };
 
   return (
     <View style={styles.container}>
@@ -18,6 +29,7 @@ export default function UserMenuScreen({ navigation }) {
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('ViewMap', { email })}
+        // onPress={() => navigation.navigate('Chat', { otherUserEmail: getEmail(0) })}
       >
         <Image
           source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/map.png' }}
@@ -28,6 +40,7 @@ export default function UserMenuScreen({ navigation }) {
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('QRCodeScanner', { email })}
+        // onPress={() => navigation.navigate('Chat', { otherUserEmail: getEmail(1) })}
       >
         <Image
           source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/qr-code.png' }}
@@ -38,6 +51,11 @@ export default function UserMenuScreen({ navigation }) {
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('Settings', { email })}
+      //   onPress={() =>  {
+      //     setSelectedBar('fakeBar');
+      //     navigation.navigate('Manager')
+      //   }
+      // }
       >
         <Image
           source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/settings.png' }}

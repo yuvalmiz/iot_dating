@@ -48,6 +48,10 @@ const ManagerScreen = () => {
     navigation.navigate('BarMapSeatManager');
   };
 
+  const handleUploadMenu = () => {
+    navigation.navigate('UploadMenu');
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -74,6 +78,10 @@ const ManagerScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleCreateNewSeats}>
         <FontAwesome name="plus" size={24} color="white" />
         <Text style={styles.buttonText}>Create New Seats</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={handleUploadMenu}>
+        <FontAwesome name="plus" size={24} color="white" />
+        <Text style={styles.buttonText}>Upload Menu</Text>
       </TouchableOpacity>
 
       <View style={styles.separator} />

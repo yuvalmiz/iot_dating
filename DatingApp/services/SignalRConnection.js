@@ -8,6 +8,7 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
   const [connection, setConnection] = useState(null);
   const { local } = variables();
   const { email } = useContext(SharedStateContext)
+  groupName = [email, otherEmail].sort().join(';');
 
   useEffect(() => {
     const negotiate = async () => {
@@ -27,13 +28,8 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
           .withAutomaticReconnect()
           .build();
 
-        newConnection.on('ReceiveMessage', (sender, reciver ,message, timestamp) => {
+        newConnection.on('ReceiveMessage_' + groupName, (sender, reciver ,message, timestamp) => {
           console.log('Received message:', sender,reciver ,message, timestamp);
-          user = [sender, reciver].sort().join(';');
-          recivers = [email, otherEmail].sort().join(';');
-          if (user !== recivers) {
-            return;
-          }
           onMessageReceived(sender, message, timestamp);
         });
 

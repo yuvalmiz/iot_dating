@@ -23,7 +23,7 @@ def main(req: func.HttpRequest, signalRDatingChat: func.Out[str]) -> func.HttpRe
     groupName = f"{sorted([user, other_user])[0]};{sorted([user, other_user])[1]}"
     logging.info(f"sending message toGroup name: {groupName}")
     signalRMessage = {
-        "target": "ReceiveMessage",
+        "target": "ReceiveMessage_" + groupName,
         "arguments": [user, other_user ,message, timestamp],
     }
     
