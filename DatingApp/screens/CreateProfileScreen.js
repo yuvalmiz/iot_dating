@@ -63,7 +63,7 @@ export default function CreateProfileScreen({ navigation }) {
     setLastNameInState(lastName);
     try {
       await insertIntoTable({tableName: 'BarTable', entity: userProfile});
-      navigation.navigate('User Menu');
+      navigation.navigate('UserBarSelection');
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile.');
     } finally {
