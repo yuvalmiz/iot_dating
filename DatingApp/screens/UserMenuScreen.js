@@ -1,68 +1,215 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
 import { SharedStateContext } from '../context';
+import { FontAwesome } from '@expo/vector-icons';
+import { insertIntoTable } from '../api';
 
 export default function UserMenuScreen({ navigation }) {
-  const { email } = useContext(SharedStateContext);
-  const { firstName } = useContext(SharedStateContext);
-  const { lastName } = useContext(SharedStateContext);
-  const {setSelectedBar} = useContext(SharedStateContext);
-  const [showBackModal, setShowBackModal] = useState(false);
-  const handleCancel = () => {
-    setShowBackModal(false);
+  const { email, firstName, lastName, selectedBar, selectedBarName, connectedSeats, setConnectedSeats } = useContext(SharedStateContext);
+  const [loading, setLoading] = useState(true);
+  const [showSeatChangeModal, setShowSeatChangeModal] = useState(false);
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [showNotConnectedModal, setShowNotConnectedModal] = useState(false);
+
+  useEffect(() => {
+    if (selectedBarName) {
+      setLoading(false);
+    }
+  }, [selectedBarName]);
+
+  const handleDisconnectSeat = async () => {
+    const seatToFree = connectedSeats[selectedBar];
+
+    if (seatToFree) {
+      // Free the current seat in the bar
+      const updatedSeat = {
+        PartitionKey: selectedBar,
+        RowKey: seatToFree,
+        connectedUser: '',
+      };
+      await insertIntoTable({ tableName: 'BarTable', entity: updatedSeat, action: 'update' });
+
+      // Remove the seat from connectedSeats in the context
+      const updatedConnectedSeats = { ...connectedSeats };
+      delete updatedConnectedSeats[selectedBar];
+      setConnectedSeats(updatedConnectedSeats);
+
+      // Update the connectedSeats in the user's profile in the database
+      const connectedSeatsString = Object.entries(updatedConnectedSeats)
+        .map(([bar, seat]) => `${bar};${seat}`)
+        .join(',');
+      const updatedUser = {
+        PartitionKey: 'Users',
+        RowKey: email,
+        connectedSeats: connectedSeatsString,
+      };
+      await insertIntoTable({ tableName: 'BarTable', entity: updatedUser, action: 'update' });
+
+      setShowDisconnectModal(false);
+    }
   };
 
-  // const getEmail = (num) => {
-  //   if (num === 1) {
-  //     return email;
-  //   }
-  //   if (email === 'yuval32211@gmail.com') {
-  //     return 'yuvalmizrahi@mail.tau.ac.il';
-  //   }
-  //   return 'yuval32211@gmail.com';
-  // };
+  const handleProceedChangeSeat = () => {
+    handleDisconnectSeat();
+    setShowSeatChangeModal(false);
+    navigation.navigate('QRCodeScanner');
+  };
+
+  const handleCancelChangeSeat = () => {
+    setShowSeatChangeModal(false);
+  };
+
+  const handleSwitchBar = () => {
+    navigation.navigate('UserBarSelection');
+  };
+
+  const handleScanQRCode = () => {
+    if (connectedSeats[selectedBar]) {
+      setShowSeatChangeModal(true);
+    } else {
+      navigation.navigate('QRCodeScanner');
+    }
+  };
+
+  const handleCancelDisconnect = () => {
+    setShowDisconnectModal(false);
+  };
+
+  const openDisconnectModal = () => {
+    if (connectedSeats[selectedBar]) {
+      setShowDisconnectModal(true);
+    } else {
+      setShowNotConnectedModal(true);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading bar details...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
       <Text style={styles.subtitle}>Hello, {firstName} {lastName}!</Text>
+      <Text style={styles.subtitle}>
+        You are at the <Text style={{ fontStyle: 'italic', color: '#4285F4' }}>'{selectedBarName}'</Text> bar
+      </Text>
+
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('ViewMap', { email })}
-        // onPress={() => navigation.navigate('Chat', { otherUserEmail: getEmail(0) })}
+        onPress={() => navigation.navigate('ViewMap')}
       >
-        <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/map.png' }}
-          style={styles.icon}
-        />
+        <FontAwesome name="map" size={24} color="white" />
         <Text style={styles.buttonText}>View Bar Map</Text>
       </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('QRCodeScanner', { email })}
-        // onPress={() => navigation.navigate('Chat', { otherUserEmail: getEmail(1) })}
+        onPress={handleScanQRCode}
       >
-        <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/qr-code.png' }}
-          style={styles.icon}
-        />
+        <FontAwesome name="qrcode" size={24} color="white" />
         <Text style={styles.buttonText}>Scan QR Code</Text>
       </TouchableOpacity>
+
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Settings', { email })}
-      //   onPress={() =>  {
-      //     setSelectedBar('fakeBar');
-      //     navigation.navigate('Manager')
-      //   }
-      // }
+        onPress={() => navigation.navigate('Settings')}
       >
-        <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/settings.png' }}
-          style={styles.icon}
-        />
+        <FontAwesome name="cog" size={24} color="white" />
         <Text style={styles.buttonText}>Settings</Text>
       </TouchableOpacity>
+
+      <View style={styles.separator} />
+
+      <TouchableOpacity
+        style={[styles.disconnectButton, { backgroundColor: '#FF4136' }]}
+        onPress={openDisconnectModal}
+      >
+        <FontAwesome name="sign-out" size={24} color="white" />
+        <Text style={styles.disconnectButtonText}>Disconnect from Seat</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.switchBarButton} onPress={handleSwitchBar}>
+        <FontAwesome name="random" size={20} color="white" />
+        <Text style={styles.switchBarButtonText}>Switch to a Different Bar</Text>
+      </TouchableOpacity>
+
+      {/* Seat Change Modal */}
+      <Modal
+        visible={showSeatChangeModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleCancelChangeSeat}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              You are already seated at {selectedBarName}. Do you want to change your seat?
+            </Text>
+            <Text style={styles.modalSubText}>
+              Proceeding will disconnect you from your current seat.
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleProceedChangeSeat}>
+                <Text style={styles.modalButtonText}>Proceed</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCancelChangeSeat}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Disconnect Modal */}
+      <Modal
+        visible={showDisconnectModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleCancelDisconnect}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              Are you sure you want to disconnect from your current seat at {selectedBarName}?
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleDisconnectSeat}>
+                <Text style={styles.modalButtonText}>Yes, Disconnect</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={handleCancelDisconnect}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Not Connected Modal */}
+      <Modal
+        visible={showNotConnectedModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowNotConnectedModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>
+              You are not connected to any seat yet, so there is nothing to disconnect from.
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => setShowNotConnectedModal(false)}>
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -86,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   button: {
     flexDirection: 'row',
@@ -98,31 +245,62 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '80%',
     justifyContent: 'center',
-    elevation: 3,
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  disconnectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 20,
+    width: '80%',
+    justifyContent: 'center',
+  },
+  disconnectButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
   icon: {
     width: 24,
     height: 24,
     marginRight: 10,
   },
-  logoutButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: '#d9534f',
+  separator: {
+    height: 30, 
+  },
+  switchBarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFBA55',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+    width: '80%',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
-  logoutButtonText: {
+  switchBarButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
+    marginLeft: 10,
     fontWeight: 'bold',
+  },
+  switchBarIcon: {
+    width: 24,
+    height: 24,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
   },
   modalContainer: {
     flex: 1,
@@ -146,27 +324,34 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: 'center',
     fontSize: 18,
+    color: '#333',
+  },
+  modalSubText: {
+    marginBottom: 20,
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   modalButton: {
-    width: '80%',
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 5,
-    marginVertical: 10,
-  },
-  buttonYes: {
     backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
   },
-  buttonNo: {
-    backgroundColor: '#d9534f',
-  },
-  buttonText: {
+  modalButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
 });
+

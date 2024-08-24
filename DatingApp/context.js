@@ -7,9 +7,11 @@ const SharedStateProvider = ({ children }) => {
   const [otherEmail, setOtherEmail] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [seats, setSeats] = useState('');
-  const [managedBars, setManagedBars] = useState([]); // New state for managed bars
-  const [selectedBar, setSelectedBar] = useState(''); // New state for the selected bar
+  const [managedBars, setManagedBars] = useState([]);
+  const [selectedBar, setSelectedBar] = useState('');
+  const [selectedBarName, setSelectedBarName] = useState('');
+  const [connectedSeats, setConnectedSeats] = useState({});
+  const [seats, setSeats] = useState([]);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem('userEmail');
@@ -24,40 +26,75 @@ const SharedStateProvider = ({ children }) => {
     if (storedLastName) {
       setLastName(storedLastName);
     }
+    const storedManagedBars = localStorage.getItem('managedBars');
+    if (storedManagedBars) {
+      setManagedBars(JSON.parse(storedManagedBars));
+    }
+    const storedConnectedSeats = localStorage.getItem('connectedSeats');
+    if (storedConnectedSeats) {
+      setConnectedSeats(JSON.parse(storedConnectedSeats));
+    }
+    const storedSelectedBar = localStorage.getItem('selectedBar');
+    if (storedSelectedBar) {
+      setSelectedBar(storedSelectedBar);
+    }
+    const storedSelectedBarName = localStorage.getItem('selectedBarName');
+    if (storedSelectedBarName) {
+      setSelectedBarName(storedSelectedBarName);
+    }
+
+    const seats = localStorage.getItem('seats');
+    if (seats) {
+      setSeats(JSON.parse(seats));
+    }
   }, []);
 
   const saveEmail = (email) => {
-    console.log('Saving email:', email);
+    console.log('Saving to context - email:', email);
     setEmail(email);
     localStorage.setItem('userEmail', email);
   };
 
   const saveFirstName = (firstName) => {
-    console.log('Saving first name:', firstName);
+    console.log('Saving to context - first name:', firstName);
     setFirstName(firstName);
     localStorage.setItem('userFirstName', firstName);
   };
 
   const saveLastName = (lastName) => {
-    console.log('Saving last name:', lastName);
+    console.log('Saving to context - last name:', lastName);
     setLastName(lastName);
     localStorage.setItem('userLastName', lastName);
   };
 
-  const saveSeats = (seats) => {
-    console.log('Saving seats:', seats);
-    setSeats(seats);
-  };
-
   const saveOtherEmail = async (otherEmail) => {
-    console.log('Saving other email:', otherEmail);
+    console.log('Saving to context - other email:', otherEmail);
     setOtherEmail(otherEmail);
   };
 
   const saveSelectedBar = (barId) => {
-    console.log('Saving selected bar:', barId);
+    console.log('Saving to context - selected bar:', barId);
     setSelectedBar(barId);
+    localStorage.setItem('selectedBar', barId);
   };
+
+  const saveSelectedBarName = (barName) => {
+    console.log('Saving to context - selected bar name:', barName);
+    setSelectedBarName(barName);
+    localStorage.setItem('selectedBarName', barName);
+  };
+
+  const saveConnectedSeats = (seats) => {
+    console.log('Saving to context - connected seats:', seats);
+    setConnectedSeats(seats);
+    localStorage.setItem('connectedSeats', JSON.stringify(seats));
+  }
+
+  const saveSeats = (seats) => {
+    console.log('Saving to context - seats:', seats);
+    setSeats(seats);
+    localStorage.setItem('seats', JSON.stringify(seats));
+  }
 
   return (
     <SharedStateContext.Provider value={{
@@ -67,14 +104,18 @@ const SharedStateProvider = ({ children }) => {
       setFirstName: saveFirstName,
       lastName,
       setLastName: saveLastName,
-      seats,
-      setSeats: saveSeats,
       otherEmail,
       setOtherEmail: saveOtherEmail,
-      managedBars, // Provide managedBars
-      setManagedBars, // Provide setManagedBars
-      selectedBar, // Provide selectedBar
-      setSelectedBar: saveSelectedBar, // Provide setSelectedBar
+      managedBars, 
+      setManagedBars, 
+      selectedBar, 
+      setSelectedBar: saveSelectedBar,
+      selectedBarName,
+      setSelectedBarName: saveSelectedBarName,
+      connectedSeats,
+      setConnectedSeats: saveConnectedSeats,
+      seats,
+      setSeats: saveSeats,
     }}>
       {children}
     </SharedStateContext.Provider>

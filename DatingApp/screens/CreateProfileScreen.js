@@ -53,21 +53,17 @@ export default function CreateProfileScreen({ navigation }) {
       RowKey: email,
       firstName,
       lastName,
-      birthDate: birthDate.toISOString(),
+      birthDate: birthDate.toISOString().split('T')[0],
       gender,
       biography,
       interests,
-      profilePictureUrl,
+      hasProfilePicture: !!profilePictureUrl,
     };
     setFirstNameInState(firstName);
     setLastNameInState(lastName);
     try {
       await insertIntoTable({tableName: 'BarTable', entity: userProfile});
-      if (email === 'yuval.amit.dahan.yuval@gmail.com') {
-        navigation.navigate('Manager');
-      } else {
-        navigation.navigate('User Menu');
-      }
+      navigation.navigate('User Menu');
     } catch (error) {
       Alert.alert('Error', 'Failed to save profile.');
     } finally {

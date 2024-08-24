@@ -1,36 +1,12 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { FontAwesome } from '@expo/vector-icons'; 
+import { FontAwesome } from '@expo/vector-icons';
 import { SharedStateContext } from '../context';
-import { readFromTable } from '../api';
 
 const ManagerScreen = () => {
-  const { email, selectedBar } = useContext(SharedStateContext);
-  const [barName, setBarName] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { email, selectedBarName } = useContext(SharedStateContext);
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const fetchBarName = async () => {
-      try {
-        const queryFilter = `PartitionKey eq 'Bars' and RowKey eq '${selectedBar}'`;
-        const barData = await readFromTable('BarTable', queryFilter);
-        if (barData.length > 0) {
-          setBarName(barData[0].BarName);
-        } else {
-          setBarName(selectedBar); // Fallback to ID if name not found
-        }
-      } catch (error) {
-        console.error('Error fetching bar name:', error);
-        Alert.alert('Error', 'Failed to load bar name.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBarName();
-  }, [selectedBar]);
 
   const handleSwitchBar = () => {
     navigation.navigate('ManagerBarSelection'); // Navigate back to bar selection
@@ -52,20 +28,15 @@ const ManagerScreen = () => {
     navigation.navigate('UploadMenu');
   };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading bar details...</Text>
-      </View>
-    );
-  }
+  const handleUserView = () => {
+    navigation.navigate('User Menu');
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
       <Text style={styles.subtitle}>You are logged in as {email}</Text>
-      <Text style={styles.subtitle}>You are managing the '{barName}' bar</Text>
+      <Text style={styles.subtitle}>You are managing the '{selectedBarName}' bar</Text>
 
       <TouchableOpacity style={styles.button} onPress={handleGenerateQRCode}>
         <FontAwesome name="qrcode" size={24} color="white" />
@@ -76,22 +47,24 @@ const ManagerScreen = () => {
         <Text style={styles.buttonText}>Upload New Map</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleCreateNewSeats}>
-        <FontAwesome name="plus" size={24} color="white" />
-        <Text style={styles.buttonText}>Create New Seats</Text>
+        <FontAwesome name="pencil" size={24} color="white" />
+        <Text style={styles.buttonText}>Modify and Create Seats</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleUploadMenu}>
-        <FontAwesome name="plus" size={24} color="white" />
+        <FontAwesome name="cutlery" size={24} color="white" />
         <Text style={styles.buttonText}>Upload Menu</Text>
       </TouchableOpacity>
 
       <View style={styles.separator} />
 
       <TouchableOpacity style={styles.switchBarButton} onPress={handleSwitchBar}>
-        <Image
-          source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/swap.png' }} // Example image
-          style={styles.switchBarIcon}
-        />
+        <FontAwesome name="random" size={20} color="white" />
         <Text style={styles.switchBarButtonText}>Manage a Different Bar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.userButton} onPress={handleUserView}>
+        <FontAwesome name="users" size={20} color="white" />
+        <Text style={styles.buttonText}>Switch to User View</Text>
       </TouchableOpacity>
     </View>
   );
@@ -133,35 +106,47 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     marginLeft: 10,
+    fontWeight: 'bold',
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
   },
   switchBarButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffcc00',
+    backgroundColor: '#FFBA55',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     width: '80%',
     justifyContent: 'center',
-    marginTop: 20, // Adds space above the button
+    marginTop: 20,
   },
   switchBarButtonText: {
-    color: '#333',
+    color: 'white',
     fontSize: 18,
     marginLeft: 10,
-    fontWeight: 'normal', // Make the font weight normal
+    fontWeight: 'bold',
   },
   switchBarIcon: {
     width: 24,
     height: 24,
   },
   separator: {
-    height: 30, // Adds vertical space between the main buttons and the "Manage a Different Bar" button
+    height: 30,
   },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#333',
+  userButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#6c757d',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    width: '80%',
+    justifyContent: 'center',
+    marginTop: 20,
   },
 });
 

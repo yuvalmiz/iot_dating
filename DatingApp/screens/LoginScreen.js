@@ -9,10 +9,7 @@ import { SharedStateContext } from '../context';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
-  const { firstName, setFirstName } = useContext(SharedStateContext);
-  const { lastName, setLastName } = useContext(SharedStateContext);
-  const { email, setEmail } = useContext(SharedStateContext);
-  const { setManagedBars } = useContext(SharedStateContext);
+  const { firstName, setFirstName, lastName, setLastName, email, setEmail, setManagedBars, setConnectedSeats } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
     webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
@@ -23,7 +20,6 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     const userProfile = async (email) => {
-      // Check if the user is a manager
       const managerQuery = `PartitionKey eq 'Managers' and RowKey eq '${email}'`;
       const managerData = await readFromTable('BarTable', managerQuery);
 
@@ -36,16 +32,24 @@ export default function LoginScreen({ navigation }) {
           managedBars: managerData[0].ManagedBars.split(','),
         };
       } else {
-        // Check if the user exists but is not a manager
         const userQuery = `PartitionKey eq 'Users' and RowKey eq '${email}'`;
         const userData = await readFromTable('BarTable', userQuery);
 
         if (userData.length > 0) {
+          const connectedSeatsString = userData[0].connectedSeats || '';
+          const connectedSeatsDict = connectedSeatsString.split(',').reduce((dict, item) => {
+            const [barName, seatName] = item.split(';');
+            if (barName && seatName) {
+              dict[barName] = seatName;
+            }
+            return dict;
+          }, {});
           return {
             exists: true,
             isManager: false,
             firstName: userData[0].firstName,
             lastName: userData[0].lastName,
+            connectedSeats: connectedSeatsDict,
           };
         } else {
           return { exists: false };
@@ -53,28 +57,27 @@ export default function LoginScreen({ navigation }) {
       }
     };
 
-    if (!email) {
-      return;
-    }
+    if (email) {
+      userProfile(email).then(user => {
+        if (user.exists) {
+          setFirstName(user.firstName);
+          setLastName(user.lastName);
 
-    userProfile(email).then(async (user) => {
-      if (user.exists) {
-        setFirstName(user.firstName);
-        setLastName(user.lastName);
-
-        if (user.isManager) {
-          setManagedBars(user.managedBars);
-          console.log('Manager detected');
-          navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
+          if (user.isManager) {
+            setManagedBars(user.managedBars);
+            console.log('Manager detected');
+            navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
+          } else {
+            setConnectedSeats(user.connectedSeats || {});
+            console.log('User detected');
+            navigation.navigate('UserBarSelection');
+          }
         } else {
-          console.log('User detected');
-          navigation.navigate('User Menu');
+          console.log('User not found - creating profile');
+          navigation.navigate('CreateProfile');
         }
-      } else {
-        console.log('User not found - creating profile');
-        navigation.navigate('CreateProfile');
-      }
-    });
+      });
+    }
   }, [email]);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function LoginScreen({ navigation }) {
 
     if (response?.type === 'success') {
       const { authentication } = response;
-      fetchUserInfo(authentication.accessToken).then(async (email) => {
+      fetchUserInfo(authentication.accessToken).then(email => {
         if (email) {
           setEmail(email);
         }

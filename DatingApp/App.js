@@ -7,11 +7,9 @@ import { SharedStateProvider, SharedStateContext } from './context';
 import LoginScreen from './screens/LoginScreen';
 import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
 import MyQRCodeScannerScreen from './screens/QRCodeScannerScreen';
-import InteractiveImageWrapper from './screens/InteractiveImageWrapper';
 import ManagerScreen from './screens/ManagerScreen';
 import UploadMapScreen from './screens/UploadMapScreen';
 import ChatScreen from './screens/ChatScreen';
-import ManagerMapScreen from './screens/ManagerMapScreen';
 import CreateProfileScreen from './screens/CreateProfileScreen';
 import UserMenuScreen from './screens/UserMenuScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -19,11 +17,12 @@ import ViewMapScreen from './screens/ViewMapScreen';
 import BarMapSeatManagerScreen from './screens/BarMapSeatManagerScreen';
 import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
 import UploadMenuScreen from './screens/UploadMenuScreen';
+import UserBarSelectionScreen from './screens/UserBarSelectionScreen';
 
 const Stack = createStackNavigator();
 
 function LogoutButton({ navigation }) {
-  const { setEmail, setFirstName, setLastName, setSelectedBar, setManagedBars } = useContext(SharedStateContext);
+  const { setEmail, setFirstName, setLastName, setSelectedBar, setManagedBars, setSelectedBarName, setConnectedSeats, setSeats } = useContext(SharedStateContext);
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
@@ -37,6 +36,9 @@ function LogoutButton({ navigation }) {
     setLastName('');
     setSelectedBar('');
     setManagedBars([]);
+    setSelectedBarName('');
+    setConnectedSeats({});
+    setSeats([]);
     navigation.navigate('Login');
   };
 
@@ -96,19 +98,18 @@ export default function App() {
           })}
         >
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
-          <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection" , headerLeft: null }} />
+          <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection", headerLeft: null }} />
           <Stack.Screen name="Manager" component={ManagerScreen} />
           <Stack.Screen name="UploadMap" component={UploadMapScreen} options={{ title: "Upload Map" }} />
           <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
           <Stack.Screen name="QRCodeScanner" component={MyQRCodeScannerScreen} options={{ title: "Scan QR Code" }} />
           <Stack.Screen name="BarMapSeatManager" component={BarMapSeatManagerScreen} options={{ title: "Manage Seats" }} />
-          <Stack.Screen name="InteractiveImageWrapper" component={InteractiveImageWrapper} options={{ title: "Create New Seats" }} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="ManagerMap" component={ManagerMapScreen} options={{ title: "Map" }} />
           <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
+          <Stack.Screen name="UserBarSelection" component={UserBarSelectionScreen} options={{ title: "Select a Bar", headerLeft: null }} />
           <Stack.Screen name="User Menu" component={UserMenuScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="ViewMap" component={ViewMapScreen} />
+          <Stack.Screen name="ViewMap" component={ViewMapScreen} options={{ title: "View Bar Map" }} />
           <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
         </Stack.Navigator>
         <StatusBar style="auto" />

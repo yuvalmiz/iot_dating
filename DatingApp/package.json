@@ -28,6 +28,7 @@
     "expo-status-bar": "~1.12.1",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
     "jspdf": "^2.5.1",
     "ngx-scanner-qrcode": "^1.6.9",
     "qrcode": "^1.5.3",
@@ -41,7 +42,6 @@
     "react-native-screens": "^3.32.0",
     "react-native-svg": "^15.4.0",
     "react-native-web": "~0.19.10",
-    "react-qr-reader": "^3.0.0-beta-1",
     "react-router-dom": "^6.25.1",
     "undefined": "expo-auth-session/providers/google"
   },

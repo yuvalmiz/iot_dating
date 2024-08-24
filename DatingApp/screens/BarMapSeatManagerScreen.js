@@ -65,6 +65,17 @@ const BarMapSeatManager = ({ navigation }) => {
           partitionKey: selectedBar,
           rowKey: seat.RowKey,
         });
+        if (seat.connectedUser && seat.connectedUser !== '') {
+          const userQuery = `PartitionKey eq 'Users' and RowKey eq '${seat.connectedUser}'`;
+          const userData = await readFromTable('BarTable', userQuery);
+          updatedConnectedSeats = userData[0].connectedSeats.split(',').filter(item => item !== `${selectedBar};${seat.RowKey}`).join(',');
+          updatedUser = {
+            PartitionKey: 'Users',
+            RowKey: seat.connectedUser,
+            connectedSeats: updatedConnectedSeats,
+          }
+          await insertIntoTable({ tableName: 'BarTable', entity: updatedUser, action: 'update' });
+        }
       }
       setSeats([]);
       setPrevSeat([]);

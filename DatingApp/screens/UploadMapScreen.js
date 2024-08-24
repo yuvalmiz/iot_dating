@@ -7,7 +7,7 @@ import { SharedStateContext } from '../context';
 const UploadMapScreen = () => {
   const [image, setImage] = useState(null);
   const [imagePicked, setImagePicked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [existingMap, setExistingMap] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const { selectedBar } = useContext(SharedStateContext); // Get the current bar ID
@@ -30,12 +30,8 @@ const UploadMapScreen = () => {
     } catch (error) {
       console.error('Error fetching map:', error);
     } finally {
-      setLoading(false);
+      setLoading(false); // Ensure loading is set to false no matter what
     }
-  };
-
-  const handleImageLoad = () => {
-    setLoading(false); // Set loading to false once the image is fully loaded
   };
 
   const pickImage = async () => {
@@ -79,6 +75,15 @@ const UploadMapScreen = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Upload Bar Map</Text>
@@ -89,16 +94,17 @@ const UploadMapScreen = () => {
         <Text style={styles.buttonText}>Pick an image from camera roll</Text>
       </TouchableOpacity>
 
-      {loading && <ActivityIndicator size="large" color="#007bff" style={styles.loading} />}
-
-      {!loading && existingMap && (
+      {existingMap && (
         <View style={styles.existingMapContainer}>
           <Text style={styles.existingMapText}>Current Bar Map:</Text>
-          <Image source={{ uri: existingMap }} style={styles.image} onLoad={handleImageLoad} />
+          <Image
+            source={{ uri: existingMap }}
+            style={styles.image}
+          />
         </View>
       )}
 
-      {!loading && !existingMap && (
+      {!existingMap && (
         <Text style={styles.noMapText}>No map currently exists for this bar.</Text>
       )}
 
@@ -158,6 +164,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     padding: 20,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -201,9 +218,6 @@ const styles = StyleSheet.create({
     color: 'green',
     fontSize: 16,
     marginBottom: 20,
-  },
-  loading: {
-    marginTop: 20,
   },
   existingMapContainer: {
     alignItems: 'center',

@@ -2,6 +2,7 @@ import variables from "./services/staticVariables";
 const { local } = variables();
 
 const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.now()}.png`) => {
+  console.log('Uploading to blob:', uri, containerName, blobName);
   try {
     const response = await fetch(uri);
     const blob = await response.blob();
@@ -20,13 +21,14 @@ const uploadToBlob = async (uri, containerName = 'uploads', blobName = `${Date.n
           },
           body: JSON.stringify({
             image_data: base64data,
-            container_name: containerName, // Ensure this matches the container name used in your Azure Function
-            blob_name: blobName, // Use the custom blob name
+            container_name: containerName,
+            blob_name: blobName,
           }),
         });
 
         if (uploadResponse.ok) {
           const url = await uploadResponse.text();
+          console.log('Upload was successful:', url);
           resolve(url);
         } else {
           reject('Error uploading image');

@@ -3,42 +3,35 @@ import { View, Text, StyleSheet, Picker, TouchableOpacity, ActivityIndicator, Al
 import { SharedStateContext } from '../context';
 import { readFromTable } from '../api';
 
-export default function ManagerBarSelectionScreen({ navigation }) {
-  const { managedBars, setSelectedBar, setSelectedBarName } = useContext(SharedStateContext);
+export default function UserBarSelectionScreen({ navigation }) {
+  const { setSelectedBar, setSelectedBarName } = useContext(SharedStateContext);
+  const [bars, setBars] = useState([]);
   const [currentBar, setCurrentBar] = useState('');
-  const [barNames, setBarNames] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBarNames = async () => {
+    const fetchBars = async () => {
       try {
-        const barNameMap = {};
-        for (const barId of managedBars) {
-          const queryFilter = `PartitionKey eq 'Bars' and RowKey eq '${barId}'`;
-          const barData = await readFromTable('BarTable', queryFilter);
-          if (barData.length > 0) {
-            barNameMap[barId] = barData[0].BarName;
-          } else {
-            barNameMap[barId] = barId; // Fallback to ID if name not found
-          }
-        }
-        setBarNames(barNameMap);
-        setCurrentBar(managedBars[0]); // Default to the first bar
+        const queryFilter = `PartitionKey eq 'Bars'`;
+        const barData = await readFromTable('BarTable', queryFilter);
+        setBars(barData);
+        setCurrentBar(barData[0]?.RowKey || ''); // Default to the first bar
       } catch (error) {
-        console.error('Error fetching bar names:', error);
-        Alert.alert('Error', 'Failed to load bar names.');
+        console.error('Error fetching bars:', error);
+        Alert.alert('Error', 'Failed to load bars.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBarNames();
-  }, [managedBars]);
+    fetchBars();
+  }, []);
 
-  const handleManageBar = () => {
-    setSelectedBar(currentBar); // Save the selected bar in the context
-    setSelectedBarName(barNames[currentBar]); // Save the selected bar name in the context
-    navigation.navigate('Manager'); // Navigate to the Manager screen
+  const handleSelectBar = () => {
+    const selectedBar = bars.find(bar => bar.RowKey === currentBar);
+    setSelectedBar(currentBar);
+    setSelectedBarName(selectedBar?.BarName || currentBar); // Save bar name to context
+    navigation.navigate('User Menu'); // Navigate to the User Menu screen
   };
 
   if (loading) {
@@ -52,22 +45,21 @@ export default function ManagerBarSelectionScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Select a Bar to Manage</Text>
+      <Text style={styles.title}>Select Your Bar</Text>
       <Text style={styles.explanation}>
-        As a manager, please select the bar you want to manage from the list below. 
-        You can always return to this screen to choose a different bar if needed.
+        Please select the bar you are currently at from the list below.
       </Text>
       <Picker
         selectedValue={currentBar}
         style={styles.picker}
-        onValueChange={(itemValue, itemIndex) => setCurrentBar(itemValue)}
+        onValueChange={(itemValue) => setCurrentBar(itemValue)}
       >
-        {managedBars.map((barId, index) => (
-          <Picker.Item label={barNames[barId]} value={barId} key={index} />
+        {bars.map((bar, index) => (
+          <Picker.Item label={bar.BarName} value={bar.RowKey} key={index} />
         ))}
       </Picker>
-      <TouchableOpacity style={styles.manageButton} onPress={handleManageBar}>
-        <Text style={styles.manageButtonText}>Manage Bar</Text>
+      <TouchableOpacity style={styles.selectButton} onPress={handleSelectBar}>
+        <Text style={styles.selectButtonText}>Select Bar</Text>
       </TouchableOpacity>
     </View>
   );
@@ -102,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     elevation: 3,
   },
-  manageButton: {
+  selectButton: {
     backgroundColor: '#007bff',
     paddingVertical: 12,
     paddingHorizontal: 30,
@@ -110,7 +102,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     alignItems: 'center',
   },
-  manageButtonText: {
+  selectButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
