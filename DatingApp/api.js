@@ -159,4 +159,20 @@ const sendPdfViaEmail = async (pdfBase64, email) => {
   }
 };
 
-export { saveMessage, getMessages, insertIntoTable, readFromTable, deleteFromTable, uploadToBlob, sendPdfViaEmail };
+// Function to mark messages as read in Azure Table
+const markMessagesAsRead = async (userEmail, otherUserEmail) => {
+  const url = local ? 'http://localhost:7071/api/UpdateIsRead' : 'https://functionappdatingiot.azurewebsites.net/api/updateisread';
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: userEmail, otherUser: otherUserEmail }),
+    });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+  }
+};
+
+
+export { saveMessage, getMessages, insertIntoTable, readFromTable, deleteFromTable, uploadToBlob, sendPdfViaEmail, markMessagesAsRead };

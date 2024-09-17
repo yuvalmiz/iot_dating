@@ -31,7 +31,9 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
         newConnection.on('ReceiveMessage_' + groupName, (sender, reciver ,message, timestamp) => {
           console.log('Received message:', sender,reciver ,message, timestamp);
           onMessageReceived(sender, message, timestamp);
+          window.dispatchEvent(new CustomEvent('chatUpdated'));
         });
+      
 
         newConnection.on('connectSeat',(seat_id, user_id) => {
           onConnectSeat(seat_id, user_id);
@@ -72,7 +74,7 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
   const sendMessage = async (user, otherUser, message, timestamp) => {
     url = local ? 'http://localhost:7071/api/sendMessage' : 'https://functionappdatingiot.azurewebsites.net/api/sendmessage';
     try {
-      const response = await fetch('http://localhost:7071/api/sendMessage', {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

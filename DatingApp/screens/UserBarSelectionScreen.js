@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Picker, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { SharedStateContext } from '../context';
 import { readFromTable } from '../api';
 
@@ -61,6 +62,17 @@ export default function UserBarSelectionScreen({ navigation }) {
       <TouchableOpacity style={styles.selectButton} onPress={handleSelectBar}>
         <Text style={styles.selectButtonText}>Select Bar</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.selectButton, { marginTop: 20 }]}  // Add a marginTop to create space
+        onPress={() => navigation.navigate('ChatHistory')}
+      >
+        <FontAwesome name="comments" size={24} color="white" />
+        <Text style={styles.selectButtonText}>Chat History</Text>
+      </TouchableOpacity>
+
+
+
     </View>
   );
 }
