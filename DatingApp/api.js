@@ -132,6 +132,35 @@ const getMessages = async (user1, user2) => {
   return await readFromTable('BarTable', queryFilter);
 };
 
+const sendMessage = async ({user = "", otherUser = "", message = "", timestamp, groupName}) => {
+  url = local ? 'http://localhost:7071/api/sendMessage' : 'https://functionappdatingiot.azurewebsites.net/api/sendMessage';
+  try {
+    if (!groupName) {
+      groupName = [user, otherUser].sort().join(';');
+    }
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user,
+        otherUser,
+        groupName,
+        message,
+        timestamp,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Send Message Error: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Send Message Error:', error);
+  }
+};
+
+
 const sendPdfViaEmail = async (pdfBase64, email) => {
   console.log('Sending PDF via email:', email);
   url = local ? 'http://localhost:7071/api/SendPDFByEmail' : 'https://functionappdatingiot.azurewebsites.net/api/sendpdfbyemail';
@@ -159,20 +188,6 @@ const sendPdfViaEmail = async (pdfBase64, email) => {
   }
 };
 
-// Function to mark messages as read in Azure Table
-const markMessagesAsRead = async (userEmail, otherUserEmail) => {
-  const url = local ? 'http://localhost:7071/api/UpdateIsRead' : 'https://functionappdatingiot.azurewebsites.net/api/updateisread';
-
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user: userEmail, otherUser: otherUserEmail }),
-    });
-  } catch (error) {
-    console.error('Error marking messages as read:', error);
-  }
-};
 
 
-export { saveMessage, getMessages, insertIntoTable, readFromTable, deleteFromTable, uploadToBlob, sendPdfViaEmail, markMessagesAsRead };
+export { saveMessage, getMessages, insertIntoTable, readFromTable, deleteFromTable, uploadToBlob, sendPdfViaEmail, sendMessage };

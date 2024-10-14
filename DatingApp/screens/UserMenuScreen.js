@@ -118,6 +118,14 @@ export default function UserMenuScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.button}
+        onPress={() => navigation.navigate('SentGiftsScreen')}
+      >
+        <FontAwesome name="comments" size={24} color="white" />
+        <Text style={styles.buttonText}>My Sent Gifts</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.button}
         onPress={handleScanQRCode}
       >
         <FontAwesome name="qrcode" size={24} color="white" />

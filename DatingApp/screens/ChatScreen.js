@@ -1,24 +1,35 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Keyboard } from 'react-native';
 import useSignalR from '../services/SignalRConnection';
-import { readFromTable, markMessagesAsRead, insertIntoTable } from '../api';
+import { readFromTable, insertIntoTable, sendMessage } from '../api';
 import { SharedStateContext } from '../context';
 import { format } from 'date-fns';
-// import { useFocusEffect } from '@react-navigation/native';  // <-- Import useFocusEffect
 
 
 const ChatScreen = ({ route }) => {
-  const { otherUserEmail } = route.params;
-  const { email } = useContext(SharedStateContext);
+  const { otherUserEmail, otherUserName } = route.params;
+  const { email, firstName, lastName, } = useContext(SharedStateContext);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [otherUserName, setOtherUserName] = useState(''); // State to store the other user's full name
   const [loading, setLoading] = useState(true);  // Loading state for fetching names
   const users = [email, otherUserEmail].sort();
-  const { sendMessage, connection, joinGroup, leaveGroup } = useSignalR({ onMessageReceived: (sender, message, timestamp) => {
-    setMessages((prevMessages) => [...prevMessages, { Sender: sender, Message: message, Timestamp: timestamp }]);
+  const userName = `${firstName} ${lastName}`;
+  const { connection, joinGroup, leaveGroup } = useSignalR({ onMessageReceived: async (sender, message, timestamp) => {
+    setMessages((prevMessages) => [...prevMessages, { Sender: message.Sender, Message: message.Message, Timestamp: message.Timestamp }]);
+    const newChatEntryForEmail = {
+      PartitionKey: `${email};chat`,
+      RowKey: otherUserEmail,
+      otherUserName: otherUserName,
+      Message: message.Message,
+      isRead: true,
+      Timestamp: message.Timestamp,
+      StringTimestamp: message.StringTimestamp // Add a string timestamp for sorting
+    };
+    
+    await insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForEmail, action: 'update' });
+    await sendMessage({groupName: `${email};chat`, message: newChatEntryForEmail});
     scrollToEnd(); // Scroll to bottom when a new message arrives
-  }, otherEmail: otherUserEmail });
+  }, groupName: `${users[0]};${users[1]}` });
 
   const flatListRef = useRef(); // Reference for FlatList to handle scrolling
 
@@ -26,31 +37,25 @@ const ChatScreen = ({ route }) => {
     const fetchMessages = async () => {
     try {
       const partitionKey = `${users[0]};${users[1]}`;
+      console.log('Fetching messages for:', partitionKey);
       const queryFilter = `PartitionKey eq '${partitionKey}'`;
+      const queryLastMessage = `PartitionKey eq '${email};chat' and RowKey eq '${otherUserEmail}'`;
       const fetchedMessages = await readFromTable('BarTable', queryFilter);
-
+      const lastMessage = await readFromTable('BarTable', queryLastMessage);
       fetchedMessages.forEach(message => {
         if (!message.Timestamp) {
           message.Timestamp = new Date().toISOString(); // Set a default timestamp if missing
         }
       });
-
-      setMessages(fetchedMessages.sort((a, b) => a.Timestamp.localeCompare(b.Timestamp)));
-
-      // Mark unread messages as read (only those from the other user)
-      await markMessagesAsRead(email, otherUserEmail);
-
-      window.dispatchEvent(new Event('chatUpdated'));
-      // Fetch the other user's first and last name
-      const userQuery = `PartitionKey eq 'Users' and RowKey eq '${otherUserEmail}'`;
-      const userInfo = await readFromTable('BarTable', userQuery);  // Assuming user data is in the 'BarTable'
-
-      if (userInfo.length > 0) {
-        const { firstName, lastName } = userInfo[0];
-        setOtherUserName(`${firstName} ${lastName}`);
-      } else {
-        setOtherUserName(otherUserEmail);  // Fallback to email if name is not found
+      if (lastMessage.length > 0 && lastMessage[0].isRead === false) {
+        const updatedMessage = {
+          ...lastMessage[0],
+          isRead: true
+        };
+        await insertIntoTable({ tableName: 'BarTable', entity: updatedMessage, action: 'update' });
+        await sendMessage({groupName: `${email};chat`, message: updatedMessage});
       }
+      setMessages(fetchedMessages.sort((a, b) => a.Timestamp.localeCompare(b.Timestamp)));
     } catch (error) {
       console.error('Error fetching chat or user info:', error);
     } finally {
@@ -71,11 +76,6 @@ const ChatScreen = ({ route }) => {
           try {
             console.log('Leaving group');
             
-            // Mark messages as read before leaving the group
-            await markMessagesAsRead(email, otherUserEmail);
-            
-            // Dispatch an event to notify that the chat history has been updated
-            window.dispatchEvent(new Event('chatUpdated'));
   
             // Leave the chat group
             await leaveGroup(groupName);
@@ -86,6 +86,7 @@ const ChatScreen = ({ route }) => {
   
         // Call the async function (but don't await it directly here)
         leaveChat();
+        connection.stop();
       };
     }
   }, [email, otherUserEmail, connection]);
@@ -103,6 +104,7 @@ const ChatScreen = ({ route }) => {
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       const timestamp = new Date().toISOString();
+      const StringTimestamp = format(new Date(), 'yyyy-MM-dd HH:mm:ss');
       const users = [email, otherUserEmail].sort(); // Sort the emails
       const partitionKey = `${users[0]};${users[1]}`; // Use sorted emails as PartitionKey
   
@@ -111,41 +113,48 @@ const ChatScreen = ({ route }) => {
         const chatCheckQuery = `PartitionKey eq '${partitionKey}'`;
         const chatExists = await readFromTable('BarTable', chatCheckQuery);
         const newChatEntryForEmail = {
-          PartitionKey: email,
+          PartitionKey: `${email};chat`,
           RowKey: otherUserEmail,
+          otherUserName: otherUserName,
           Message: newMessage,
           isRead: true,
           Timestamp: timestamp,
-          StringTimestamp: format(new Date(), 'yyyy-MM-dd HH:mm:ss') // Add a string timestamp for sorting
+          StringTimestamp: StringTimestamp // Add a string timestamp for sorting
         };
 
         const newChatEntryForOtherUser = {
-          PartitionKey: otherUserEmail,
+          PartitionKey: `${otherUserEmail};chat`,
           RowKey: email,
+          otherUserName: userName,
           Message: newMessage,
           isRead: false,
           Timestamp: timestamp,
-          StringTimestamp: format(new Date(), 'yyyy-MM-dd HH:mm:ss') // Add a string timestamp for sorting
+          StringTimestamp: StringTimestamp // Add a string timestamp for sorting
         };
-  
+
+        const chatEntry = {
+          PartitionKey: partitionKey,
+          RowKey: timestamp,
+          Sender: email,
+          SenderName: userName,
+          reciverName: otherUserName,
+          Message: newMessage,
+          Timestamp: timestamp,
+          StringTimestamp: StringTimestamp
+        };
+        var action = 'update'
         if (chatExists.length === 0) {
-          // First time chatting with this user, insert both entries
-          // Insert both chat entries
-          await Promise.all([
-            insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForEmail }),
-            insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForOtherUser })
-          ]);
+          action = 'create';
         }
-        else {
-          // Insert both chat entries
-          await Promise.all([
-            insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForEmail, action: 'update' }),
-            insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForOtherUser, action: 'update' })
-          ]);
-        }
-  
+        await Promise.all([
+          insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForEmail, action: action }),
+          insertIntoTable({ tableName: 'BarTable', entity: newChatEntryForOtherUser, action: action })
+        ]);
+        await insertIntoTable({ tableName: 'BarTable', entity: chatEntry });
         // Send the actual message after the first chat entry is made
-        sendMessage(email, otherUserEmail, newMessage, timestamp);
+        await sendMessage({user: email, otherUser: otherUserEmail, message: chatEntry});
+        await sendMessage({groupName: `${otherUserEmail};chat`, message:newChatEntryForOtherUser});
+
         setNewMessage('');
         Keyboard.dismiss();
         scrollToEnd(); // Scroll to the bottom after sending a message

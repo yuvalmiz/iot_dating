@@ -1,5 +1,5 @@
 const variables = () => {
-    const local = false;
+    const local = true;
     return { local };
 }  
 export default variables;

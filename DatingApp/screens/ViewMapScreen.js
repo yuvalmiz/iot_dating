@@ -18,6 +18,8 @@ const ViewMapScreen = ({ navigation }) => {
   const [seatImages, setSeatImages] = useState({});
   const [seatsLoaded, setSeatsLoaded] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [selectedSeat, setSelectedSeat] = useState(null);
+  const [userSeat, setUserSeat] = useState(null);
 
   useEffect(() => {
     // Set the title of the screen to the selected bar name
@@ -92,7 +94,6 @@ const ViewMapScreen = ({ navigation }) => {
 
   const loadSeatImages = async () => {
     const newSeatImages = {};
-
     for (const seat of seats) {
       if (seat.connectedUser) {
         try {
@@ -109,6 +110,7 @@ const ViewMapScreen = ({ navigation }) => {
             }
             if (user.RowKey == email) { // If the seat is occupied by the current user
               newSeatImages[seat.RowKey] = "https://thumbs.dreamstime.com/b/want-you-pointing-finger-icon-illustration-human-hand-index-poiting-hiring-warning-message-103309691.jpg";
+              setUserSeat(seat.RowKey.split('_')[1]);
             }
           } else {
             newSeatImages[seat.RowKey] = placeholderImageUrl;
@@ -140,7 +142,7 @@ const ViewMapScreen = ({ navigation }) => {
       return (
         <G
           key={index}
-          onPress={() => seat.connectedUser && showUserProfile(seat.connectedUser)}
+          onPress={() => seat.connectedUser && showUserProfile(seat.connectedUser, index)}
         >
           <SvgImage
             href={imageUrl}
@@ -156,11 +158,12 @@ const ViewMapScreen = ({ navigation }) => {
     });
   };
 
-  const showUserProfile = (connectedUser) => {
+  const showUserProfile = (connectedUser, index) => {
     const userQuery = `PartitionKey eq 'Users' and RowKey eq '${connectedUser}'`;
     readFromTable('BarTable', userQuery).then(userData => {
       if (userData.length > 0) {
         setSelectedUser(userData[0]);
+        setSelectedSeat(index);
         setShowModal(true);
       }
     }).catch(error => {
@@ -233,10 +236,18 @@ const ViewMapScreen = ({ navigation }) => {
                   style={selectedUser.RowKey == email ? { display: 'none' } : styles.modalButton}
                   onPress={() => {
                     setShowModal(false);
-                    navigation.navigate('Chat', { otherUserEmail: selectedUser.RowKey });
+                    navigation.navigate('Chat', { otherUserEmail: selectedUser.RowKey, otherUserName: `${selectedUser.firstName} ${selectedUser.lastName}` });
                   }}
                 >
                   <Text style={styles.modalButtonText}>Start Chat</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={selectedUser.RowKey == email ? { display: 'none' } : styles.modalButton}
+                  onPress={() => { setShowModal(false);
+                  navigation.navigate('MenuSelectionScreen', { otherUserEmail: selectedUser.RowKey, otherUserSeat: selectedSeat, userSeat: userSeat });
+                }}
+                >
+                  <Text style={styles.modalButtonText}>Send Gift</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.modalButton}

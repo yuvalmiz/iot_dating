@@ -3,35 +3,54 @@ import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator }
 import { useFocusEffect } from '@react-navigation/native';
 import { SharedStateContext } from '../context';
 import { readFromTable } from '../api';
+import useSignalR from '../services/SignalRConnection';
+
 
 export default function ChatHistoryScreen({ navigation }) {
   const { email } = useContext(SharedStateContext);  // Get the current user's email
   const [chatList, setChatList] = useState([]);  // This will hold the chat list with names
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);  // To handle pull-to-refresh
+  useSignalR({ onMessageReceived: (sender, message, timestamp) => {
+    setChatList((prevChats) => { // Update the chat list when a new message is received
+      var newChat = [...prevChats];
+      var was_modified = false;
+      for (let i = 0; i < prevChats.length; i++) {
+        if (newChat[i].email === message.RowKey) {
+          newChat[i].lastMessage = message.Message;
+          newChat[i].timestamp = message.StringTimestamp;
+          newChat[i].isUnread = message.isRead === false;
+          was_modified = true;
+          break;
+        }
+      }
+      if (!was_modified) {
+        newChat.push({
+          email: message.RowKey,
+          name: message.otherUserName,
+          lastMessage: message.Message,
+          timestamp: message.StringTimestamp,
+          isUnread: message.isRead === false,
+        });
+      }
+      return newChat;
+    });
+    }, groupName: `${email};chat` });
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
         // Step 1: Query for all rows where the user is the PartitionKey and RowKey is 'chat'
-        const queryFilter = `PartitionKey eq '${email}'`;
+        const queryFilter = `PartitionKey eq '${email};chat'`;
         const allChats = await readFromTable('BarTable', queryFilter);
 
         // Step 2: Process the chat rows, extracting relevant fields
         const chatList = await Promise.all(allChats.map(async (chat) => {
-          const { RowKey, StringTimestamp, Message, Timestamp, isRead } = chat;
+          const { RowKey, StringTimestamp, Message, Timestamp, isRead, otherUserName } = chat;
           
-          // Fetch the other user's name based on the ChatWith field
-          const userQuery = `PartitionKey eq 'Users' and RowKey eq '${RowKey}'`;
-          const userInfo = await readFromTable('BarTable', userQuery);  // Assuming 'BarTable' also holds user data
-
-          const userName = userInfo.length > 0 && userInfo[0].firstName && userInfo[0].lastName
-            ? `${userInfo[0].firstName} ${userInfo[0].lastName}`
-            : RowKey;  // Fallback to email if name is not found
-
           return { 
             email: RowKey, 
-            name: userName, 
+            name: otherUserName, 
             lastMessage: Message, 
             timestamp: StringTimestamp, 
             isUnread: isRead === false 
@@ -50,22 +69,11 @@ export default function ChatHistoryScreen({ navigation }) {
     };
 
     fetchChats();
-    
-    // Listen for chat updates in real time
-    const handleChatUpdated = () => {
-      fetchChats();  // Re-fetch chat list when a new message is sent or received
-    };
-
-    window.addEventListener('chatUpdated', handleChatUpdated);
-
-    return () => {
-      window.removeEventListener('chatUpdated', handleChatUpdated);
-    };
   }, [email]);
 
   const renderChatItem = ({ item }) => {
     const formattedTimestamp = new Date(item.timestamp).toLocaleString();
-
+    console.log('Chat item:', item);
     return (
       <TouchableOpacity
         style={[styles.chatItem, item.isUnread ? styles.unreadChatItem : null]}  // Highlight unread chats

@@ -32,6 +32,10 @@ const ManagerScreen = () => {
     navigation.navigate('User Menu');
   };
 
+  const handleManagerGifts = () => {
+    navigation.navigate('ManagerGiftsScreen');
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
@@ -60,6 +64,11 @@ const ManagerScreen = () => {
       <TouchableOpacity style={styles.switchBarButton} onPress={handleSwitchBar}>
         <FontAwesome name="random" size={20} color="white" />
         <Text style={styles.switchBarButtonText}>Manage a Different Bar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.userButton} onPress={handleManagerGifts}>
+        <FontAwesome name="gift" size={20} color="white" />
+        <Text style={styles.buttonText}>View Gifts</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.userButton} onPress={handleUserView}>

@@ -4,11 +4,10 @@ import variables from './staticVariables';
 import { SharedStateContext } from '../context';
 
 
-const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEmail }) => {
+const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupName = "" }) => {
   const [connection, setConnection] = useState(null);
   const { local } = variables();
   const { email } = useContext(SharedStateContext)
-  groupName = [email, otherEmail].sort().join(';');
 
   useEffect(() => {
     const negotiate = async () => {
@@ -30,8 +29,9 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
 
         newConnection.on('ReceiveMessage_' + groupName, (sender, reciver ,message, timestamp) => {
           console.log('Received message:', sender,reciver ,message, timestamp);
-          onMessageReceived(sender, message, timestamp);
-          window.dispatchEvent(new CustomEvent('chatUpdated'));
+          if (onMessageReceived) {
+            onMessageReceived(sender, message, timestamp);
+          }
         });
       
 
@@ -49,14 +49,9 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
         console.error('Negotiation error:', error);
       }
     };
-
-    negotiate();
-
-    return () => {
-      if (connection) {
-        connection.stop();
-      }
-    };
+    if (groupName) {
+      negotiate();
+    }
   }, []);
 
   const joinGroup = async (groupName) => {
@@ -71,31 +66,7 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, otherEm
     }
   };
 
-  const sendMessage = async (user, otherUser, message, timestamp) => {
-    url = local ? 'http://localhost:7071/api/sendMessage' : 'https://functionappdatingiot.azurewebsites.net/api/sendmessage';
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user,
-          otherUser,
-          message,
-          timestamp,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Send Message Error: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.error('Send Message Error:', error);
-    }
-  };
-
-  return { sendMessage, connection, joinGroup, leaveGroup };
+  return { connection, joinGroup, leaveGroup };
 };
 
 export default useSignalR;

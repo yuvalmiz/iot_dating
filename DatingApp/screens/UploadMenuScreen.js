@@ -7,6 +7,7 @@ import { insertIntoTable, readFromTable } from '../api';
 const UploadMenuScreen = ({ navigation }) => {
   const { selectedBar, setSelectedBar } = useContext(SharedStateContext);
   const [menuCategories, setMenuCategories] = useState([]);
+  const [firstLoad, setFirstLoad] = useState(true);
 
   const handleCategoryChange = (index, value) => {
     const updatedCategories = [...menuCategories];
@@ -63,7 +64,7 @@ const UploadMenuScreen = ({ navigation }) => {
 
     try {
       var action = 'create';
-      if (menuCategories.length) {
+      if (!firstLoad) {
         action = 'update';
       }
       await insertIntoTable({ tableName: 'BarTable', entity, action });
@@ -77,6 +78,7 @@ const UploadMenuScreen = ({ navigation }) => {
     try {
       const menuData = await readFromTable('BarTable', queryFilter);
       if (menuData.length > 0) {
+        setFirstLoad(false);
         const fetchedMenu = JSON.parse(menuData[0].Categories);
         setMenuCategories(fetchedMenu);
       }

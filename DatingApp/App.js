@@ -19,6 +19,9 @@ import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
 import UploadMenuScreen from './screens/UploadMenuScreen';
 import UserBarSelectionScreen from './screens/UserBarSelectionScreen';
 import ChatHistoryScreen from './screens/ChatHistoryScreen';
+import MenuSelectionScreen from './screens/MenuSelectionScreen';
+import ManagerGiftsScreen from './screens/ManagerGiftsScreen';
+import SentGiftsScreen from './screens/SentGiftsScreen';
 
 const Stack = createStackNavigator();
 
@@ -87,17 +90,18 @@ export default function App() {
   return (
     <SharedStateProvider>
       <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Login"
-          screenOptions={({ navigation }) => ({
-            headerRight: () => (
-              navigation.canGoBack() && navigation.getState().routes[navigation.getState().index].name !== 'Login' && <LogoutButton navigation={navigation} />
-            ),
-            headerRightContainerStyle: {
-              paddingRight: 20,
-            },
-          })}
-        >
+          <Stack.Navigator
+            initialRouteName="Login"
+            screenOptions={({ navigation }) => ({
+              headerRight: () => (
+                navigation.canGoBack() && navigation.getState().routes[navigation.getState().index].name !== 'Login' && <LogoutButton navigation={navigation} />
+              ),
+              headerRightContainerStyle: {
+                paddingRight: 20,
+              },
+              cardStyle: { height: '100%' },
+            })}
+          >
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
           <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection", headerLeft: null }} />
           <Stack.Screen name="Manager" component={ManagerScreen} />
@@ -113,6 +117,9 @@ export default function App() {
           <Stack.Screen name="ViewMap" component={ViewMapScreen} options={{ title: "View Bar Map" }} />
           <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
           <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} options={{ title: "Chat History" }} />
+          <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
+          <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
+          <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
@@ -126,6 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    height: '100%',
   },
   logoutButton: {
     marginRight: 10,
