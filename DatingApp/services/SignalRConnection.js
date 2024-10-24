@@ -2,12 +2,13 @@ import { useEffect, useState, useContext } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import variables from './staticVariables';
 import { SharedStateContext } from '../context';
-
+import { Alert } from 'react-native'; // Import Alert for emergency popups
 
 const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupName = "" }) => {
   const [connection, setConnection] = useState(null);
   const { local } = variables();
   const { email } = useContext(SharedStateContext)
+  // const [emergencyMessage, setEmergencyMessage] = useState(null);
 
   useEffect(() => {
     const negotiate = async () => {
@@ -27,9 +28,24 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupNa
           .withAutomaticReconnect()
           .build();
 
+
+        newConnection.onreconnected(() => {
+          console.log('Reconnected to SignalR');
+        });
+  
+        newConnection.onclose(() => {
+          console.log('Connection closed');
+        });
+
         newConnection.on('ReceiveMessage_' + groupName, (sender, reciver ,message, timestamp) => {
           console.log('Received message:', sender,reciver ,message, timestamp);
+
           if (onMessageReceived) {
+            onMessageReceived(sender, message, timestamp);
+          }
+          // Check if the message contains "Emergency" to display an alert
+          else if (message.includes('Emergency')) {
+            console.log('Emergency detected:', message);
             onMessageReceived(sender, message, timestamp);
           }
         });

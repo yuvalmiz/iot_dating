@@ -19,9 +19,11 @@ import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
 import UploadMenuScreen from './screens/UploadMenuScreen';
 import UserBarSelectionScreen from './screens/UserBarSelectionScreen';
 import ChatHistoryScreen from './screens/ChatHistoryScreen';
-import MenuSelectionScreen from './screens/MenuSelectionScreen';
-import ManagerGiftsScreen from './screens/ManagerGiftsScreen';
-import SentGiftsScreen from './screens/SentGiftsScreen';
+// import MenuSelectionScreen from './screens/MenuSelectionScreen';
+// import ManagerGiftsScreen from './screens/ManagerGiftsScreen';
+// import SentGiftsScreen from './screens/SentGiftsScreen';
+import { sendMessage, readFromTable } from './api'; // Ensure readFromTable is imported
+import EmergencyButton from './EmergencyButton';
 
 const Stack = createStackNavigator();
 
@@ -92,9 +94,20 @@ export default function App() {
       <NavigationContainer>
           <Stack.Navigator
             initialRouteName="Login"
-            screenOptions={({ navigation }) => ({
+            // screenOptions={({ navigation }) => ({
+            screenOptions={({ navigation, route }) => ({
               headerRight: () => (
-                navigation.canGoBack() && navigation.getState().routes[navigation.getState().index].name !== 'Login' && <LogoutButton navigation={navigation} />
+                //navigation.canGoBack() && navigation.getState().routes[navigation.getState().index].name !== 'Login' && <LogoutButton navigation={navigation} />
+                route.name !== 'Manager' &&
+                route.name !== 'ManagerBarSelection' &&
+                route.name !== 'BarMapSeatManager' &&
+                route.name !== 'UploadMap' &&
+              route.name !== 'UploadMenu' && (
+                <View style={styles.buttonRow}>
+                  <EmergencyButton />
+                  <LogoutButton navigation={navigation} />
+                </View>
+              )
               ),
               headerRightContainerStyle: {
                 paddingRight: 20,
@@ -117,9 +130,9 @@ export default function App() {
           <Stack.Screen name="ViewMap" component={ViewMapScreen} options={{ title: "View Bar Map" }} />
           <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
           <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} options={{ title: "Chat History" }} />
-          <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
+          {/* <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
           <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
-          <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} />
+          <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} /> */}
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>
@@ -135,8 +148,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: '100%',
   },
-  logoutButton: {
+  buttonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emergencyButton: {
     marginRight: 10,
+    backgroundColor: 'red',
+    borderRadius: 5,
+    padding: 10,
+  },
+  emergencyText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    marginLeft: 10,
   },
   logoutIcon: {
     width: 24,

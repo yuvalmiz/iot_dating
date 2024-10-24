@@ -1,12 +1,51 @@
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Image, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 import { SharedStateContext } from '../context';
+import useSignalR from '../services/SignalRConnection';
 
 const ManagerScreen = () => {
   const { email, selectedBarName } = useContext(SharedStateContext);
   const navigation = useNavigation();
+  const [alertMessage, setAlertMessage] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  // Initialize SignalR with groupName as "Managers"
+  const { connection, joinGroup, leaveGroup } = useSignalR({
+    groupName: 'Managers', // Group for managers to listen to emergency alerts
+    onMessageReceived: (sender, message) => {
+      // Handle the received message here
+      if (message.includes('Emergency') && message.includes(selectedBarName) ) {
+        setAlertMessage(message);
+        setIsModalVisible(true);
+      } else {
+        console.log('Non-emergency message received:', message);
+      }
+    },
+  });
+
+  // UseEffect to join the group when the manager screen mounts and leave when it unmounts
+  useEffect(() => {
+    if (connection) {
+      joinGroup('Managers').catch((err) =>
+        console.error('Error joining Managers group:', err)
+      );
+
+      // Cleanup when the component is unmounted
+      return () => {
+        leaveGroup('Managers').catch((err) =>
+          console.error('Error leaving Managers group:', err)
+        );
+        connection.stop();
+      };
+    }
+  }, [connection]);
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setAlertMessage(null);
+  };
 
   const handleSwitchBar = () => {
     navigation.navigate('ManagerBarSelection'); // Navigate back to bar selection
@@ -34,7 +73,7 @@ const ManagerScreen = () => {
 
   const handleManagerGifts = () => {
     navigation.navigate('ManagerGiftsScreen');
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -75,6 +114,31 @@ const ManagerScreen = () => {
         <FontAwesome name="users" size={20} color="white" />
         <Text style={styles.buttonText}>Switch to User View</Text>
       </TouchableOpacity>
+
+      {/* Emergency Modal */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Image
+              source={{ uri: 'https://img.icons8.com/ios-filled/100/fa314a/alarm.png' }}
+              style={styles.emergencyIcon}
+            />
+            <Text style={styles.modalTitle}>Emergency Alert</Text>
+            <Text style={styles.modalMessage}>{alertMessage}</Text>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.confirmButton]}
+              onPress={handleCloseModal}
+            >
+              <Text style={styles.confirmButtonText}>Acknowledge</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -117,11 +181,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: 'bold',
   },
-  icon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-  },
   switchBarButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -139,10 +198,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: 'bold',
   },
-  switchBarIcon: {
-    width: 24,
-    height: 24,
-  },
   separator: {
     height: 30,
   },
@@ -156,6 +211,60 @@ const styles = StyleSheet.create({
     width: '80%',
     justifyContent: 'center',
     marginTop: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  emergencyIcon: {
+    width: 60,
+    height: 60,
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#d9534f',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#333',
+  },
+  modalButton: {
+    width: '80%',
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    marginVertical: 10,
+  },
+  confirmButton: {
+    backgroundColor: '#d9534f',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
