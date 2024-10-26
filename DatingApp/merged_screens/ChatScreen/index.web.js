@@ -195,7 +195,7 @@ const ChatScreen = ({ route }) => {
         ref={flatListRef}
         data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.RowKey}
+        keyExtractor={(item) => item.RowKey ? item.RowKey : item.Timestamp}
         //keyExtractor={(item, index) => index.toString()} // Use index as a key since RowKey might not be unique
 
         style={styles.messageList}
