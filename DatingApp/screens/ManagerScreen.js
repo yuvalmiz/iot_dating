@@ -10,33 +10,25 @@ const ManagerScreen = () => {
   const navigation = useNavigation();
   const [alertMessage, setAlertMessage] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const EmergencyGroupName = `Manager_${selectedBarName}`
   // Initialize SignalR with groupName as "Managers"
   const { connection, joinGroup, leaveGroup } = useSignalR({
-    groupName: 'Managers', // Group for managers to listen to emergency alerts
-    onMessageReceived: (sender, message) => {
+    groupName: EmergencyGroupName, // Group for managers to listen to emergency alerts
+    onMessageReceived: (sender, message, timestamp) => {
       // Handle the received message here
-      if (message.includes('Emergency') && message.includes(selectedBarName) ) {
-        setAlertMessage(message);
-        setIsModalVisible(true);
-      } else {
-        console.log('Non-emergency message received:', message);
-      }
+      // if (message.includes('Emergency') && message.includes(selectedBarName) ) {
+      setAlertMessage(message);
+      setIsModalVisible(true);
+      // } else {
+      //   console.log('Non-emergency message received:', message);
+      // }
     },
   });
 
   // UseEffect to join the group when the manager screen mounts and leave when it unmounts
   useEffect(() => {
     if (connection) {
-      joinGroup('Managers').catch((err) =>
-        console.error('Error joining Managers group:', err)
-      );
-
-      // Cleanup when the component is unmounted
       return () => {
-        leaveGroup('Managers').catch((err) =>
-          console.error('Error leaving Managers group:', err)
-        );
         connection.stop();
       };
     }
