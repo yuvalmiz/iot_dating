@@ -12,9 +12,9 @@ export default function UserMenuScreen({ navigation }) {
   const [showNotConnectedModal, setShowNotConnectedModal] = useState(false);
 
   useEffect(() => {
-    setFirstName("yuval"); //TODO
-    setLastName("mizrahi"); //TODO
-    setEmail("yuval.amit.dahan.yuval@gmail.com"); //TODO
+    setFirstName("Amit"); //TODO
+    setLastName("IOT"); //TODO
+    setEmail("ad1@mail.tau.ac.il"); //TODO
     setConnectedSeats({}); //TODO
     if (selectedBarName) {
       setLoading(false);

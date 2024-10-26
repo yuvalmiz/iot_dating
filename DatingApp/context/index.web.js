@@ -10,6 +10,7 @@ const SharedStateProvider = ({ children }) => {
   const [managedBars, setManagedBars] = useState([]);
   const [selectedBar, setSelectedBar] = useState('');
   const [selectedBarName, setSelectedBarName] = useState('');
+  const [isManager, setIsManager] = useState(false);
   const [connectedSeats, setConnectedSeats] = useState({});
   const [seats, setSeats] = useState([]);
 
@@ -43,11 +44,22 @@ const SharedStateProvider = ({ children }) => {
       setSelectedBarName(storedSelectedBarName);
     }
 
+    const isManager = localStorage.getItem('isManager');
+    if (storedSelectedBarName) {
+      setIsManager(storedSelectedBarName);
+    }
+
     const seats = localStorage.getItem('seats');
     if (seats) {
       setSeats(JSON.parse(seats));
     }
   }, []);
+
+  const saveIsManager = (isManager) => {
+    console.log('Saving to context - isManager:', isManager);
+    setIsManager(isManager);
+    localStorage.setItem('isManager', isManager);
+  };
 
   const saveEmail = (email) => {
     console.log('Saving to context - email:', email);
@@ -116,6 +128,8 @@ const SharedStateProvider = ({ children }) => {
       setConnectedSeats: saveConnectedSeats,
       seats,
       setSeats: saveSeats,
+      isManager,
+      setIsManager: saveIsManager,
     }}>
       {children}
     </SharedStateContext.Provider>

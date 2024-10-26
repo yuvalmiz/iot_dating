@@ -5,7 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { insertIntoTable } from '../../api';
 
 export default function UserMenuScreen({ navigation }) {
-  const { email, firstName, lastName, selectedBar, selectedBarName, connectedSeats, setConnectedSeats } = useContext(SharedStateContext);
+  const { email, firstName, lastName, selectedBar, selectedBarName, connectedSeats, setConnectedSeats, isManager } = useContext(SharedStateContext);
   const [loading, setLoading] = useState(true);
   const [showSeatChangeModal, setShowSeatChangeModal] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
@@ -15,6 +15,7 @@ export default function UserMenuScreen({ navigation }) {
     if (selectedBarName) {
       setLoading(false);
     }
+
   }, [selectedBarName]);
 
   const handleDisconnectSeat = async () => {
@@ -69,6 +70,10 @@ export default function UserMenuScreen({ navigation }) {
     } else {
       navigation.navigate('QRCodeScanner');
     }
+  };
+
+  const handleManagerView = () => {
+    navigation.navigate('Manager');
   };
 
   const handleCancelDisconnect = () => {
@@ -154,6 +159,11 @@ export default function UserMenuScreen({ navigation }) {
         <FontAwesome name="random" size={20} color="white" />
         <Text style={styles.switchBarButtonText}>Switch to a Different Bar</Text>
       </TouchableOpacity>
+
+      {isManager && (<TouchableOpacity style={styles.switchBarButton} onPress={handleManagerView}>
+        <FontAwesome name="random" size={20} color="white" />
+        <Text style={styles.switchBarButtonText}>Switch to Manager View</Text>
+      </TouchableOpacity>)}
 
       {/* Seat Change Modal */}
       <Modal

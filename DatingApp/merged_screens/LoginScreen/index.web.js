@@ -9,7 +9,7 @@ import { SharedStateContext } from '../../context';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
-  const { firstName, setFirstName, lastName, setLastName, email, setEmail, setManagedBars, setConnectedSeats } = useContext(SharedStateContext);
+  const { firstName, setFirstName, lastName, setLastName, email, setEmail, setManagedBars, setConnectedSeats, setIsManager } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
     webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
@@ -65,10 +65,12 @@ export default function LoginScreen({ navigation }) {
 
           if (user.isManager) {
             setManagedBars(user.managedBars);
+            setIsManager(true);
             console.log('Manager detected');
             navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
           } else {
             setConnectedSeats(user.connectedSeats || {});
+            setIsManager(false);
             console.log('User detected');
             navigation.navigate('UserBarSelection');
           }

@@ -2,11 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Image, StyleSheet, Dimensions, TouchableWithoutFeedback, ActivityIndicator, Modal, Text, Button, TouchableOpacity } from 'react-native';
 // import Svg, { G, Image as SvgImage } from 'react-native-svg';
 import Svg, { G, Image as SvgImage, ClipPath, Defs, Circle } from 'react-native-svg';
-
+import placeholderImageUrl from '../../assets/question_mark.png';
 import { readFromTable } from '../../api';
 import { SharedStateContext } from '../../context';
 
-const placeholderImageUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Icon-round-Question_mark.svg';
 
 const ViewMapScreen = ({ navigation }) => {
   const { selectedBar, selectedBarName, email } = useContext(SharedStateContext);
@@ -62,10 +61,10 @@ const ViewMapScreen = ({ navigation }) => {
     const handleDimensionChange = () => {
       setImageLayout(null);
     };
-    Dimensions.addEventListener('change', handleDimensionChange);
+    const subscription = Dimensions.addEventListener('change', handleDimensionChange);
 
     return () => {
-      Dimensions.removeEventListener('change', handleDimensionChange);
+      subscription?.remove();
     };
   }, []);
 
@@ -107,7 +106,8 @@ const ViewMapScreen = ({ navigation }) => {
               newSeatImages[seat.RowKey] = `https://datingappiotstorage.blob.core.windows.net/maps/${user.RowKey}.png` + '?cache=' + new Date().getTime();
             } else {
               const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-              const initialsImageUri = `https://ui-avatars.com/api/?name=${initials}&background=007bff&color=ffffff&size=128&format=svg&rounded=true` + '?cache=' + new Date().getTime();
+              const initialsImageUri = `https://ui-avatars.com/api/?name=${initials}&background=007bff&color=ffffff&size=128&format=png&rounded=true` + '?cache=' + new Date().getTime();
+              console.log(initialsImageUri);
               newSeatImages[seat.RowKey] = initialsImageUri;
             }
             if (user.RowKey == email) { // If the seat is occupied by the current user
@@ -188,7 +188,7 @@ const ViewMapScreen = ({ navigation }) => {
       );
     } else {
       const initials = `${selectedUser.firstName[0]}${selectedUser.lastName[0]}`.toUpperCase();
-      const initialsImageUri = `https://ui-avatars.com/api/?name=${initials}&background=007bff&color=ffffff&size=128&format=svg&rounded=true` + '?cache=' + new Date().getTime();
+      const initialsImageUri = `https://ui-avatars.com/api/?name=${initials}&background=007bff&color=ffffff&size=128&format=png&rounded=true` + '?cache=' + new Date().getTime();
       return (
         <Image
           source={{ uri: initialsImageUri }}
