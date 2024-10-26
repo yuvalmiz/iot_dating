@@ -79,9 +79,9 @@ export default function ChatHistoryScreen({ navigation }) {
         style={[styles.chatItem, item.isUnread ? styles.unreadChatItem : null]}  // Highlight unread chats
         onPress={() => navigation.navigate('Chat', { otherUserEmail: item.email })}
       >
-        <Text style={styles.chatText}>{item.name}</Text>  {/* Display the user's name */}
-        <Text style={styles.messageText}>{item.lastMessage}</Text>  {/* Display the last message */}
-        <Text style={styles.timestampText}>{isNaN(new Date(item.timestamp)) ? 'Invalid Date' : formattedTimestamp}</Text>  {/* Display the timestamp */}
+        <Text style={styles.chatText}>{item.name}</Text>
+        <Text style={styles.messageText}>{item.lastMessage}</Text>
+        <Text style={styles.timestampText}>{isNaN(new Date(item.timestamp)) ? 'Invalid Date' : formattedTimestamp}</Text> 
       </TouchableOpacity>
     );
   };

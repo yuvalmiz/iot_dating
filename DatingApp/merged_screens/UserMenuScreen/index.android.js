@@ -1,21 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { SharedStateContext } from '../../context';
 import { FontAwesome } from '@expo/vector-icons';
 import { insertIntoTable } from '../../api';
 
 export default function UserMenuScreen({ navigation }) {
-  const { email, firstName, lastName, selectedBar, setSelectedBar ,selectedBarName, setSelectedBarName ,connectedSeats, setConnectedSeats, setFirstName,  setLastName, setEmail, setManagedBars,  } = useContext(SharedStateContext);
+  const { email, firstName, lastName, selectedBar, setSelectedBar, selectedBarName, setSelectedBarName, connectedSeats, setConnectedSeats, setFirstName, setLastName, setEmail, setManagedBars } = useContext(SharedStateContext);
   const [loading, setLoading] = useState(true);
   const [showSeatChangeModal, setShowSeatChangeModal] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
   const [showNotConnectedModal, setShowNotConnectedModal] = useState(false);
 
   useEffect(() => {
-    setFirstName("Amit"); //TODO
-    setLastName("IOT"); //TODO
-    setEmail("ad1@mail.tau.ac.il"); //TODO
-    setConnectedSeats({}); //TODO
     if (selectedBarName) {
       setLoading(false);
     }
@@ -97,7 +93,7 @@ export default function UserMenuScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Welcome Back!</Text>
       <Text style={styles.subtitle}>Hello, {firstName} {lastName}!</Text>
       <Text style={styles.subtitle}>
@@ -230,13 +226,13 @@ export default function UserMenuScreen({ navigation }) {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,

@@ -3,17 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-na
 import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
-import { readFromTable } from '../../api'; // Update this path based on your project structure.
-import { SharedStateContext } from '../../context'; // Update this path based on your project structure.
+import { readFromTable } from '../../api';
+import { SharedStateContext } from '../../context';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
-  const { setFirstName, setLastName, setEmail, setManagedBars, setConnectedSeats } = useContext(SharedStateContext);
+  const { firstName, setFirstName, lastName, setLastName, email, setEmail, setManagedBars, setConnectedSeats } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
-    // webClientId: '555320982861-7a3l35eq8pdgh8k6q7glk3ukdc6cmckj.apps.googleusercontent.com',
+    androidClientId: '431855682494-b42khlciqoc1pcfjt6agsqjkgnflllsj.apps.googleusercontent.com',
+    expoClientId: '431855682494-b42khlciqoc1pcfjt6agsqjkgnflllsj.apps.googleusercontent.com',
     redirectUri: makeRedirectUri({
+      native: 'com.yuvalmizrahi.DatingApp:/oauthredirect', // Use your package name here
       useProxy: true,
     }),
   });
@@ -36,9 +37,9 @@ export default function LoginScreen({ navigation }) {
         const userData = await readFromTable('BarTable', userQuery);
 
         if (userData.length > 0) {
-            const connectedSeatsString = userData[0].connectedSeats || '';
-            const connectedSeatsDict = connectedSeatsString.split(',').reduce((dict, item) => {
-                const [barName, seatName] = item.split(';');
+          const connectedSeatsString = userData[0].connectedSeats || '';
+          const connectedSeatsDict = connectedSeatsString.split(',').reduce((dict, item) => {
+            const [barName, seatName] = item.split(';');
             if (barName && seatName) {
               dict[barName] = seatName;
             }
@@ -65,20 +66,19 @@ export default function LoginScreen({ navigation }) {
 
           if (user.isManager) {
             setManagedBars(user.managedBars);
-            console.log('Manager detected');
-            // navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
-          } else {
-            setConnectedSeats(user.connectedSeats || {});
-            console.log('User detected');
-            // navigation.navigate('UserBarSelection');
           }
+          setConnectedSeats(user.connectedSeats || {});
+          navigation.navigate('UserBarSelection');
         } else {
-            console.log('User not found - creating profile');
-        //   navigation.navigate('CreateProfile');
+          navigation.navigate('CreateProfile');
         }
       });
     }
   }, [email]);
+
+  useEffect(() => {
+    setEmail("ad1@mail.tau.ac.il");
+  }, []);
 
   useEffect(() => {
     const fetchUserInfo = async (accessToken) => {
@@ -86,9 +86,11 @@ export default function LoginScreen({ navigation }) {
         const response = await fetch('https://www.googleapis.com/userinfo/v2/me', {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
+
         const user = await response.json();
         return user.email;
       } catch (error) {
+        console.error('Error fetching user info:', error);
         Alert.alert('Error', 'Failed to fetch user info.');
         return null;
       }
@@ -111,9 +113,7 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity
         style={styles.googleButton}
         disabled={!request}
-        onPress={() => {
-          promptAsync();
-        }}
+        onPress={() => promptAsync()}
       >
         <Image
           source={{ uri: 'https://img.icons8.com/color/48/000000/google-logo.png' }}

@@ -66,6 +66,7 @@ export default function LoginScreen({ navigation }) {
           if (user.isManager) {
             setManagedBars(user.managedBars);
             setIsManager(true);
+            setConnectedSeats(user.connectedSeats || {});
             console.log('Manager detected');
             navigation.navigate('ManagerBarSelection', { managedBars: user.managedBars });
           } else {

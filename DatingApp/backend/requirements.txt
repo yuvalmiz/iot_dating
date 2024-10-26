@@ -7,3 +7,4 @@ azure-data-tables
 azure-storage-blob
 qrcode
 sendgrid
+Pillow

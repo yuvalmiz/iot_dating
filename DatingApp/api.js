@@ -151,7 +151,6 @@ const sendMessage = async ({user = "", otherUser = "", message = "", timestamp, 
         timestamp,
       }),
     });
-
     if (!response.ok) {
       throw new Error(`Send Message Error: ${response.statusText}`);
     }

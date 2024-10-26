@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, TouchableOpacity, Image, Modal, Text, Platform } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Image, Modal, Text, Platform, LogBox } from 'react-native';
 import React, { useContext, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { SharedStateProvider, SharedStateContext } from './context';
@@ -24,6 +24,10 @@ import UploadMenuScreen from './merged_screens/UploadMenuScreen';
 import ManagerGiftsScreen from './merged_screens/ManagerGiftsScreen';
 
 let createStackNavigator;
+
+LogBox.ignoreLogs([
+  'Warning: No client method with the name'
+]);
 
 if (Platform.OS === 'web') {
   createStackNavigator = require('@react-navigation/stack').createStackNavigator;
@@ -97,13 +101,13 @@ function LogoutButton({ navigation }) {
     </>
   );
 }
-let initial = Platform.OS === "web" ? 'Login' : 'UserBarSelection'; //TODO delete this
+
 export default function App() {
   return (
     <SharedStateProvider>
       <NavigationContainer>
           <Stack.Navigator
-            initialRouteName={initial}
+            initialRouteName={'Login'}
             // screenOptions={({ navigation }) => ({
             screenOptions={({ navigation, route }) => ({
               headerRight: () => (
@@ -134,10 +138,10 @@ export default function App() {
           <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} options={{ title: "Chat History" }} />
           <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
           <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} />
+          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
           {
             Platform.OS === 'web' && (
               <>
-                <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
                 <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
                 <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
                 <Stack.Screen name="Manager" component={ManagerScreen} />

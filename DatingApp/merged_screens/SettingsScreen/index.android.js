@@ -177,7 +177,6 @@ export default function SettingsScreen({ navigation }) {
             mode="date"
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
             onChange={onDateChange}
-            style={styles.datePicker}
           />
         )}
       </View>
