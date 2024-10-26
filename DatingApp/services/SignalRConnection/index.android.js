@@ -1,8 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import variables from './staticVariables';
-import { SharedStateContext } from '../context';
-import { Alert } from 'react-native'; // Import Alert for emergency popups
+import variables from '../staticVariables';
+import { SharedStateContext } from '../../context';
 
 const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupName = "" }) => {
   const [connection, setConnection] = useState(null);
@@ -13,11 +12,12 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupNa
   useEffect(() => {
     const negotiate = async () => {
       try {
-        url = local ? 'http://localhost:7071/api/negotiate' : 'https://functionappdatingiot.azurewebsites.net/api/negotiate';
+        url = local ? 'http://localhost:7071/api/negotiate' : 'https://functionappdatingiot.azurewebsites.net/api/negotiate';        console.log(url);
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error(`Negotiation error: ${response.statusText}`);
         }
+
         const connectionInfo = await response.json();
 
         const newConnection = new HubConnectionBuilder()

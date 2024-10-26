@@ -3,6 +3,11 @@
     "name": "DatingApp",
     "slug": "DatingApp",
     "version": "1.0.0",
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,10 +23,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.yuvalmizrahi.DatingApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "jsEngine": "hermes",
+    "extra": {
+      "eas": {
+        "projectId": "655f3cf5-5e4b-4be8-8cee-e7ead3d3d06a"
+      }
     }
   }
 }

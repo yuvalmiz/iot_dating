@@ -1,16 +1,9 @@
-// Currentyl the QR code scanner has 2 issues -
-// 1. Pressing the back button on the modal does not stop the scanner
-// 2. After closing a modal saying "wrongly scan" or something, the camera resumes and it seems like the scanner is still running,
-//    but it does not scan any QR codes - bug.
-// This is a version trying to use resume and pause functions of the scanner to fix the issue, but it does not work.
-
-
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native-web';
-import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native-web';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useNavigation } from '@react-navigation/native';
-import { insertIntoTable, readFromTable } from '../api';
-import { SharedStateContext } from '../context';
+import { insertIntoTable, readFromTable } from '../../api';
+import { SharedStateContext } from '../../context';
 
 export default function MyQRCodeScannerScreen() {
   const [scanResult, setScanResult] = useState(null);
@@ -20,36 +13,37 @@ export default function MyQRCodeScannerScreen() {
   const [nonExistentSeat, setNonExistentSeat] = useState(false);
   const [updateSeatSuccess, setUpdateSeatSuccess] = useState(false);
   const [scannerStopped, setScannerStopped] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
   const { email, selectedBar, connectedSeats, setConnectedSeats } = useContext(SharedStateContext);
 
   let scanner;
 
   useEffect(() => {
-    scanner = new Html5Qrcode('reader');
     startCameraScanner();
     return () => {
       if (scanner && scanner.isScanning) {
-        scanner.pause();
+        scanner.stop().catch(console.error);
       }
     };
   }, []);
 
   const handleScanSuccess = async (scannedData) => {
     if (scannedData && !scannerStopped) {
-      setScannerStopped(true); // Prevent further scans
+      setScannerStopped(true);
+      setIsLoading(true);
+
       console.log('Scanned data:', scannedData);
 
-      // Stop the scanner
       if (scanner) {
-        scanner.pause();
+        scanner.stop().catch(console.error);
       }
 
-      // Verify that the scan data is in the format of 'barName;seatName', e.g., 'bar1;seat_1'
       const scanRegex = /^bar\d+;seat_\d+$/;
       if (!scanRegex.test(scannedData)) {
         console.error('Invalid QR code format:', scannedData);
-        setModalVisible(true);  // Show the modal if the QR code format is invalid
+        setIsLoading(false);
+        setModalVisible(true);
         return;
       }
       
@@ -57,22 +51,24 @@ export default function MyQRCodeScannerScreen() {
       if (barName !== selectedBar) {
         console.error('The scanned seat does not belong to the selected bar:', scannedData);
         setWrongBar(true);
+        setIsLoading(false);
         setModalVisible(true);
         return;
       }
 
-      // Check if the seat is already occupied
       const queryFilter = `PartitionKey eq '${barName}' and RowKey eq '${seatName}'`;
       const seatData = await readFromTable('BarTable', queryFilter);
       if (seatData.length === 0) {
         console.error('The scanned seat does not exist:', scannedData);
         setNonExistentSeat(true);
+        setIsLoading(false);
         setModalVisible(true);
         return;
       }
       if (seatData.length > 0 && seatData[0].connectedUser) {
         console.error('The scanned seat is already occupied:', scannedData);
         setOccupiedSeat(true);
+        setIsLoading(false);
         setModalVisible(true);
         return;
       }
@@ -85,7 +81,6 @@ export default function MyQRCodeScannerScreen() {
       console.log('Updated seat:', updatedSeat);
       await insertIntoTable({ tableName: 'BarTable', entity: updatedSeat, action: 'update' });
 
-      // Update the connectedSeats context
       const updatedConnectedSeats = { ...connectedSeats, [barName]: seatName };
       setConnectedSeats(updatedConnectedSeats);
       console.log('Connected seats:', updatedConnectedSeats);
@@ -100,16 +95,13 @@ export default function MyQRCodeScannerScreen() {
       await insertIntoTable({ tableName: 'BarTable', entity: updatedUser, action: 'update' });
 
       setUpdateSeatSuccess(true);
+      setIsLoading(false);
       setModalVisible(true);
     }
   };
 
   const startCameraScanner = () => {
-    if (scannerStopped) {
-      setScannerStopped(false);
-      scanner.resume();
-      return;
-    }
+    scanner = new Html5Qrcode('reader');
     scanner.start(
       { facingMode: 'environment' },
       {
@@ -123,10 +115,6 @@ export default function MyQRCodeScannerScreen() {
         }
       }
     ).catch(console.error);
-  };
-
-  const stopCameraScanner = () => {
-    scanner.stop().catch(console.error);
   };
 
   const handleImageUpload = (event) => {
@@ -148,28 +136,37 @@ export default function MyQRCodeScannerScreen() {
       <Text style={styles.instructions}>
         Scan a QR code using your camera or upload an image of a QR code, in order to connect to a seat.
       </Text>
-      <View style={styles.cameraContainer}>
-        <div id="reader" style={styles.qrCodeScanner}>
-          <div style={styles.innerScanner}>
-            <div style={styles.innerCornerTopLeft}></div>
-            <div style={styles.innerCornerTopRight}></div>
-            <div style={styles.innerCornerBottomLeft}></div>
-            <div style={styles.innerCornerBottomRight}></div>
-          </div>
-        </div>
-      </View>
-      <TouchableOpacity style={styles.uploadButton}>
-        <label htmlFor="upload" style={styles.uploadLabel}>
-          Upload QR Code Image
-        </label>
-        <input
-          id="upload"
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          style={styles.uploadInput}
-        />
-      </TouchableOpacity>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Processing...</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.cameraContainer}>
+            <div id="reader" style={styles.qrCodeScanner}>
+              <div style={styles.innerScanner}>
+                <div style={styles.innerCornerTopLeft}></div>
+                <div style={styles.innerCornerTopRight}></div>
+                <div style={styles.innerCornerBottomLeft}></div>
+                <div style={styles.innerCornerBottomRight}></div>
+              </div>
+            </div>
+          </View>
+          <TouchableOpacity style={styles.uploadButton}>
+            <label htmlFor="upload" style={styles.uploadLabel}>
+              Upload QR Code Image
+            </label>
+            <input
+              id="upload"
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={styles.uploadInput}
+            />
+          </TouchableOpacity>
+        </>
+      )}
       {scanResult && (
         <Text style={styles.resultText}>Scanned Result: {scanResult}</Text>
       )}
@@ -185,40 +182,25 @@ export default function MyQRCodeScannerScreen() {
               <Text style={styles.modalText}>Seat successfully updated!</Text>
             )}
             {!updateSeatSuccess && !wrongBar && !occupiedSeat && (
-              <Text style={styles.modalText}>Invalid QR code format.</Text>
+              <Text style={styles.modalText}>Invalid QR code format! Please scan a valid seat QR code.</Text>
             )}
             {wrongBar && (
-              <Text style={styles.modalText}>
-                The scanned seat does not belong to the selected bar.
-              </Text>
+              <Text style={styles.modalText}> The scanned seat does not belong to the selected bar! Please scan a seat from the selected bar.</Text>
             )}
             {occupiedSeat && (
-              <Text style={styles.modalText}>
-                The scanned seat is already occupied.
-              </Text>
+              <Text style={styles.modalText}>The scanned seat is already occupied! Please scan another seat.</Text>
             )}
             {nonExistentSeat && (
-              <Text style={styles.modalText}>
-                The scanned seat does not exist.
-              </Text>
+              <Text style={styles.modalText}>The scanned seat does not exist! Please scan a valid seat QR code.</Text>
             )}
             <TouchableOpacity
               style={styles.modalButton}
               onPress={() => {
                 setModalVisible(false);
-                if (updateSeatSuccess) {
-                  stopCameraScanner();
-                  navigation.navigate("User Menu");
-                } else {
-                  startCameraScanner();
-                }
+                navigation.navigate("User Menu");
               }}
             >
-              {updateSeatSuccess ? (
-                <Text style={styles.modalButtonText}>Return to Menu</Text>
-              ) : (
-                <Text style={styles.modalButtonText}>Close</Text>
-              )}
+              <Text style={styles.modalButtonText}>Return to Menu</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,6 +228,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginBottom: 60,
+    color: '#333',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
     color: '#333',
   },
   cameraContainer: {
@@ -333,6 +326,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     cursor: 'pointer',
+    fontFamily: 'Arial',
   },
   uploadInput: {
     display: 'none',
@@ -366,19 +360,19 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 20,
     color: '#333',
   },
   modalButton: {
     backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 5,
+    padding: 15,
+    borderRadius: 8,
     alignItems: 'center',
     width: '100%',
   },
   modalButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
 });

@@ -1,28 +1,39 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, TouchableOpacity, Image, Modal, Text } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Image, Modal, Text, Platform } from 'react-native';
 import React, { useContext, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import { SharedStateProvider, SharedStateContext } from './context';
-import LoginScreen from './screens/LoginScreen';
-import QRCodeGeneratorScreen from './screens/QRCodeGeneratorScreen';
-import MyQRCodeScannerScreen from './screens/QRCodeScannerScreen';
-import ManagerScreen from './screens/ManagerScreen';
-import UploadMapScreen from './screens/UploadMapScreen';
-import ChatScreen from './screens/ChatScreen';
-import CreateProfileScreen from './screens/CreateProfileScreen';
-import UserMenuScreen from './screens/UserMenuScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import ViewMapScreen from './screens/ViewMapScreen';
-import BarMapSeatManagerScreen from './screens/BarMapSeatManagerScreen';
-import ManagerBarSelectionScreen from './screens/ManagerBarSelectionScreen';
-import UploadMenuScreen from './screens/UploadMenuScreen';
-import UserBarSelectionScreen from './screens/UserBarSelectionScreen';
-import ChatHistoryScreen from './screens/ChatHistoryScreen';
-import MenuSelectionScreen from './screens/MenuSelectionScreen';
-import ManagerGiftsScreen from './screens/ManagerGiftsScreen';
-import SentGiftsScreen from './screens/SentGiftsScreen';
-import EmergencyButton from './EmergencyButton';
+import LoginScreen from './merged_screens/LoginScreen';
+import MyQRCodeScannerScreen from './merged_screens/QRCodeScannerScreen';
+import ChatScreen from './merged_screens/ChatScreen';
+import UserMenuScreen from './merged_screens/UserMenuScreen';
+import SettingsScreen from './merged_screens/SettingsScreen';
+import ViewMapScreen from './merged_screens/ViewMapScreen';
+import UserBarSelectionScreen from './merged_screens/UserBarSelectionScreen';
+import ChatHistoryScreen from './merged_screens/ChatHistoryScreen';
+import MenuSelectionScreen from './merged_screens/MenuSelectionScreen';
+import SentGiftsScreen from './merged_screens/SentGiftsScreen';
+import EmergencyButton from './buttons/EmergencyButton';
+import QRCodeGeneratorScreen from './merged_screens/QRCodeGeneratorScreen';
+import ManagerScreen from './merged_screens/ManagerScreen';
+import UploadMapScreen from './merged_screens/UploadMapScreen';
+import CreateProfileScreen from './merged_screens/CreateProfileScreen';
+import BarMapSeatManagerScreen from './merged_screens/BarMapSeatManagerScreen';
+import ManagerBarSelectionScreen from './merged_screens/ManagerBarSelectionScreen';
+import UploadMenuScreen from './merged_screens/UploadMenuScreen';
+import ManagerGiftsScreen from './merged_screens/ManagerGiftsScreen';
+
+let createStackNavigator;
+
+if (Platform.OS === 'web') {
+  createStackNavigator = require('@react-navigation/stack').createStackNavigator;
+}
+
+else {
+  createStackNavigator =  require('@react-navigation/native-stack').createNativeStackNavigator;
+  require('react-native-url-polyfill/auto');
+}
+
 
 const Stack = createStackNavigator();
 
@@ -86,13 +97,13 @@ function LogoutButton({ navigation }) {
     </>
   );
 }
-
+let initial = Platform.OS === "web" ? 'Login' : 'UserBarSelection'; //TODO delete this
 export default function App() {
   return (
     <SharedStateProvider>
       <NavigationContainer>
           <Stack.Navigator
-            initialRouteName="Login"
+            initialRouteName={initial}
             // screenOptions={({ navigation }) => ({
             screenOptions={({ navigation, route }) => ({
               headerRight: () => (
@@ -114,23 +125,29 @@ export default function App() {
             })}
           >
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerRight: null }} />
-          <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection", headerLeft: null }} />
-          <Stack.Screen name="Manager" component={ManagerScreen} />
-          <Stack.Screen name="UploadMap" component={UploadMapScreen} options={{ title: "Upload Map" }} />
-          <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
           <Stack.Screen name="QRCodeScanner" component={MyQRCodeScannerScreen} options={{ title: "Scan QR Code" }} />
-          <Stack.Screen name="BarMapSeatManager" component={BarMapSeatManagerScreen} options={{ title: "Manage Seats" }} />
           <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
           <Stack.Screen name="UserBarSelection" component={UserBarSelectionScreen} options={{ title: "Select a Bar", headerLeft: null }} />
           <Stack.Screen name="User Menu" component={UserMenuScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="ViewMap" component={ViewMapScreen} options={{ title: "View Bar Map" }} />
-          <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
           <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} options={{ title: "Chat History" }} />
           <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
-          <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
           <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} />
+          {
+            Platform.OS === 'web' && (
+              <>
+                <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
+                <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
+                <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
+                <Stack.Screen name="Manager" component={ManagerScreen} />
+                <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection", headerLeft: null }} />
+                <Stack.Screen name="UploadMap" component={UploadMapScreen} options={{ title: "Upload Map" }} />
+                <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
+                <Stack.Screen name="BarMapSeatManager" component={BarMapSeatManagerScreen} options={{ title: "Manage Seats" }} />
+              </>
+            )
+          }
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

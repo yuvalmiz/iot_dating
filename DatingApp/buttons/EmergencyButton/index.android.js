@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { TouchableOpacity, Text, StyleSheet, Modal, View } from 'react-native';
-import { sendMessage } from './api'; // API method for SignalR
-import { SharedStateContext } from './context';
+import { sendMessage } from '../../api'; // API method for SignalR
+import { SharedStateContext } from '../../context';
 
 const EmergencyButton = () => {
   const { email, firstName, lastName, selectedBarName, connectedSeats } = useContext(SharedStateContext);
