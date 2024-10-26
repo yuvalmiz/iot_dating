@@ -184,7 +184,6 @@ const ChatScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header with other user's full name */}
       <View style={styles.header}>
         <Text style={styles.headerText}>
           {otherUserName}
@@ -195,7 +194,7 @@ const ChatScreen = ({ route }) => {
         ref={flatListRef}
         data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.timestamp}
+        keyExtractor={(item) => item.RowKey ? item.RowKey : item.Timestamp}
         //keyExtractor={(item, index) => index.toString()} // Use index as a key since RowKey might not be unique
 
         style={styles.messageList}

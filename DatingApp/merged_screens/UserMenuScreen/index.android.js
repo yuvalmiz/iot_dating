@@ -155,7 +155,6 @@ export default function UserMenuScreen({ navigation }) {
         <Text style={styles.switchBarButtonText}>Switch to a Different Bar</Text>
       </TouchableOpacity>
 
-      {/* Seat Change Modal */}
       <Modal
         visible={showSeatChangeModal}
         transparent={true}
@@ -182,7 +181,6 @@ export default function UserMenuScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* Disconnect Modal */}
       <Modal
         visible={showDisconnectModal}
         transparent={true}
@@ -206,7 +204,6 @@ export default function UserMenuScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* Not Connected Modal */}
       <Modal
         visible={showNotConnectedModal}
         transparent={true}

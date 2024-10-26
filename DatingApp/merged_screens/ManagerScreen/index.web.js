@@ -12,7 +12,7 @@ const ManagerScreen = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const EmergencyGroupName = `Manager_${selectedBarName}`
   // Initialize SignalR with groupName as "Managers"
-  const { connection, joinGroup, leaveGroup } = useSignalR({
+  const { connection } = useSignalR({
     groupName: EmergencyGroupName, // Group for managers to listen to emergency alerts
     onMessageReceived: (sender, message, timestamp) => {
       // Handle the received message here
@@ -107,7 +107,6 @@ const ManagerScreen = () => {
         <Text style={styles.buttonText}>Switch to User View</Text>
       </TouchableOpacity>
 
-      {/* Emergency Modal */}
       <Modal
         visible={isModalVisible}
         transparent={true}

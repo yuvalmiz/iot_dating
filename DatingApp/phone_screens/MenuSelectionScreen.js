@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Button, ScrollView, Modal } from 'react-native';
 import { readFromTable, insertIntoTable, sendMessage } from '../api';
 import { SharedStateContext } from './context';
-import useSignalR from './SignalRConnection';
 
 const MenuSelectionScreen = ({ navigation, route }) => {
   const { otherUserEmail, otherUserSeat, userSeat } = route.params;
@@ -13,7 +12,6 @@ const MenuSelectionScreen = ({ navigation, route }) => {
   const [cart, setCart] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);  // State to control gift confirmation modal visibility
   const [seatWarningModalVisible, setSeatWarningModalVisible] = useState(false);  // State for seat warning modal
-  const { connection, joinGroup, leaveGroup } = useSignalR({});
 
   useEffect(() => {
     if (!userSeat) {
@@ -193,7 +191,6 @@ const MenuSelectionScreen = ({ navigation, route }) => {
             <Button title="Send Gift" onPress={handleSendGift} disabled={cart.length === 0} />
           </View>
 
-          {/* Modal for gift confirmation */}
           <Modal
             visible={modalVisible}
             animationType="slide"
@@ -217,7 +214,6 @@ const MenuSelectionScreen = ({ navigation, route }) => {
             </View>
           </Modal>
 
-          {/* Modal for seat warning */}
           <Modal
             visible={seatWarningModalVisible}
             animationType="slide"

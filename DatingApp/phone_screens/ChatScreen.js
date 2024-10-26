@@ -184,7 +184,6 @@ const ChatScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header with other user's full name */}
       <View style={styles.header}>
         <Text style={styles.headerText}>
           {otherUserName}

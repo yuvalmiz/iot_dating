@@ -70,19 +70,8 @@ const useSignalR = ({onMessageReceived, onConnectSeat, onDisconnectSeat, groupNa
     }
   }, []);
 
-  const joinGroup = async (groupName) => {
-    if (connection) {
-      await connection.invoke('JoinGroup', groupName);
-    }
-  };
 
-  const leaveGroup = async (groupName) => {
-    if (connection) {
-      await connection.invoke('LeaveGroup', groupName);
-    }
-  };
-
-  return { connection, joinGroup, leaveGroup };
+  return { connection };
 };
 
 export default useSignalR;

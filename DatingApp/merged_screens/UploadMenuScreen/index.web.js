@@ -145,9 +145,7 @@ const UploadMenuScreen = ({ navigation }) => {
         <Text style={styles.saveButtonText}>Save Menu</Text>
       </TouchableOpacity>
 
-      {/* <TouchableOpacity style={styles.fetchButton} onPress={handleFetchMenu}>
-        <Text style={styles.fetchButtonText}>Fetch Existing Menu</Text>
-      </TouchableOpacity> */}
+
     </ScrollView>
   );
 };

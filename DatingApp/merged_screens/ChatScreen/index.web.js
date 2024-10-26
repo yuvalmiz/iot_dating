@@ -14,7 +14,7 @@ const ChatScreen = ({ route }) => {
   const [loading, setLoading] = useState(true);  // Loading state for fetching names
   const users = [email, otherUserEmail].sort();
   const userName = `${firstName} ${lastName}`;
-  const { connection, joinGroup, leaveGroup } = useSignalR({ onMessageReceived: async (sender, message, timestamp) => {
+  const { connection } = useSignalR({ onMessageReceived: async (sender, message, timestamp) => {
     setMessages((prevMessages) => [...prevMessages, { Sender: message.Sender, Message: message.Message, Timestamp: message.Timestamp }]);
     const newChatEntryForEmail = {
       PartitionKey: `${email};chat`,
@@ -66,26 +66,7 @@ const ChatScreen = ({ route }) => {
     fetchMessages();
 
     if (connection) {
-      const groupName = `${users[0]};${users[1]}`;
-      console.log(`Joining group - ${groupName}`, connection);
-      joinGroup(groupName).catch((err) => console.log(err));
-
       return () => {
-        // Define an async function to handle leaving and marking as read
-        const leaveChat = async () => {
-          try {
-            console.log('Leaving group');
-            
-  
-            // Leave the chat group
-            await leaveGroup(groupName);
-          } catch (err) {
-            console.error('Error leaving group or marking messages as read:', err);
-          }
-        };
-  
-        // Call the async function (but don't await it directly here)
-        leaveChat();
         connection.stop();
       };
     }
@@ -188,7 +169,7 @@ const ChatScreen = ({ route }) => {
     return (
       <View style={item.Sender === email ? styles.myMessage : styles.otherMessage}>
         <Text>{item.Message}</Text>
-        <Text style={styles.timestamp}>{isNaN(new Date(item.RowKey)) ? new Date(item.Timestamp).toLocaleString() : formattedTimestamp}</Text> {/* Display the message's timestamp */}
+        <Text style={styles.timestamp}>{isNaN(new Date(item.RowKey)) ? new Date(item.Timestamp).toLocaleString() : formattedTimestamp}</Text>
       </View>
     );
   };
@@ -204,7 +185,6 @@ const ChatScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      {/* Header with other user's full name */}
       <View style={styles.header}>
         <Text style={styles.headerText}>
           {otherUserName}
