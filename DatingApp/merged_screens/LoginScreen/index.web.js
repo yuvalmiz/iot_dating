@@ -113,6 +113,10 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/logo.png')}
+        style={{ width: 200, height: 200, marginBottom: 30 }}
+      />
       <Text style={styles.title}>Welcome to BarMingle</Text>
       <Text style={styles.subtitle}>Please sign in to continue</Text>
       <TouchableOpacity

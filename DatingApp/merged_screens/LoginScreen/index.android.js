@@ -19,6 +19,7 @@ export default function LoginScreen({ navigation }) {
     }),
   });
 
+
   useEffect(() => {
     const userProfile = async (email) => {
       const managerQuery = `PartitionKey eq 'Managers' and RowKey eq '${email}'`;
@@ -58,6 +59,7 @@ export default function LoginScreen({ navigation }) {
       }
     };
 
+
     if (email) {
       userProfile(email).then(user => {
         if (user.exists) {
@@ -75,10 +77,6 @@ export default function LoginScreen({ navigation }) {
       });
     }
   }, [email]);
-
-  useEffect(() => {
-    setEmail("");
-  }, []);
 
   useEffect(() => {
     const fetchUserInfo = async (accessToken) => {
@@ -108,6 +106,10 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/logo.png')}
+        style={{ width: 200, height: 200, marginBottom: 30 }}
+      />
       <Text style={styles.title}>Welcome to BarMingle</Text>
       <Text style={styles.subtitle}>Please sign in to continue</Text>
       <TouchableOpacity

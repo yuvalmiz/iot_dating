@@ -62,6 +62,7 @@ export default function UserBarSelectionScreen({ navigation }) {
         ))}
       </Picker>
       <TouchableOpacity style={styles.selectButton} onPress={handleSelectBar}>
+        <FontAwesome name="check" size={24} color="white" />
         <Text style={styles.selectButtonText}>Select Bar</Text>
       </TouchableOpacity>
 
@@ -114,15 +115,17 @@ const styles = StyleSheet.create({
   selectButton: {
     backgroundColor: '#007bff',
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingHorizontal: 15,
     borderRadius: 5,
     elevation: 3,
     alignItems: 'center',
+    flexDirection: 'row',
   },
   selectButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
   loadingText: {
     marginTop: 10,

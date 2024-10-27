@@ -118,6 +118,7 @@ export default function App() {
                     route.name !== 'UploadMap'  && 
                     route.name !== 'UploadMenu' &&
                     route.name !== 'UserBarSelection' &&
+                    route.name !== 'CreateProfile' &&
                     <EmergencyButton />}
                   {navigation.canGoBack() && navigation.getState().routes[navigation.getState().index].name !== 'Login' && <LogoutButton navigation={navigation} />}
                 </View>
@@ -138,13 +139,13 @@ export default function App() {
           <Stack.Screen name="ChatHistory" component={ChatHistoryScreen} options={{ title: "Chat History" }} />
           <Stack.Screen name="MenuSelectionScreen" component={MenuSelectionScreen} options={{ title: "Select Gift" }} />
           <Stack.Screen name="SentGiftsScreen" component={SentGiftsScreen} options={{ title: "Sent Gifts" }} />
-          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile" }} />
+          <Stack.Screen name="CreateProfile" component={CreateProfileScreen} options={{ title: "Create Profile", headerLeft: null }} />
+          <Stack.Screen name="Manager" component={ManagerScreen} options={{ headerLeft: null }}/>
           {
             Platform.OS === 'web' && (
               <>
                 <Stack.Screen name="ManagerGiftsScreen" component={ManagerGiftsScreen} options={{ title: "Gifts" }} />
                 <Stack.Screen name="QRCodeGenerator" component={QRCodeGeneratorScreen} options={{ title: "Generate QR Codes"}} />
-                <Stack.Screen name="Manager" component={ManagerScreen} options={{ headerLeft: null }}/>
                 <Stack.Screen name="ManagerBarSelection" component={ManagerBarSelectionScreen} options={{ title: "Bar Selection", headerLeft: null }} />
                 <Stack.Screen name="UploadMap" component={UploadMapScreen} options={{ title: "Upload Map" }} />
                 <Stack.Screen name="UploadMenu" component={UploadMenuScreen} options={{ title: "Upload Menu" }} />
