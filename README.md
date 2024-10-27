@@ -1,5 +1,10 @@
 # BarMingle - The Bar-Oriented Dating App
 
+<p align="center">
+  <img src="DatingApp/assets/logo.png" alt="BarMingle Demo" width="600" height="400">
+</p>
+
+
 Welcome to **BarMingle**, an innovative dating app tailored for people to meet, chat, and connect within the vibrant setting of bars. Whether you're a manager looking to enhance the social experience in your venue or a user eager to meet new people, BarMingle has you covered with intuitive flows and engaging features.
 
 ## Features
@@ -27,6 +32,4 @@ To get started locally:
    npx expo start
    ```
 For Android verify that you have a connected phone or AVD and click 'a', for web click 'w'.
-
-![](DatingApp/assets/logo.png)
 
