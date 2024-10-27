@@ -37,7 +37,7 @@ const SentGiftsScreen = () => {
       <Text style={styles.giftText}>Receiver: {item.reciverMail}</Text>
       <Text style={styles.giftText}>Seat: {item.reciverSeat}</Text>
       <Text style={styles.giftText}>Items: {JSON.parse(item.Message).cart.map(cartItem => cartItem.name).join(', ')}</Text>
-      <Text style={styles.giftText}>Price: ${item.Price}</Text>
+      <Text style={styles.giftText}>Price: {item.Price}₪</Text>
       <Text style={styles.giftText}>Accepted: {item.status}</Text>
       <Text style={styles.giftText}>Date: {item.StringTimestamp}</Text>
     </View>

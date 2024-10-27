@@ -135,7 +135,7 @@ const MenuSelectionScreen = ({ navigation, route }) => {
   const renderMeal = (meal) => (
     <View style={styles.mealItem}>
       <Text style={styles.mealText}>{meal.name}</Text>
-      <Text style={styles.mealPrice}>${meal.price}</Text>
+      <Text style={styles.mealPrice}>{meal.price}₪</Text>
 
       <TouchableOpacity style={styles.addButton} onPress={() => addToCart(meal)}>
         <Text style={styles.buttonText}>Add to Cart</Text>
@@ -179,14 +179,14 @@ const MenuSelectionScreen = ({ navigation, route }) => {
                 cart.map((item, index) => (
                   <View key={index} style={styles.cartItem}>
                     <Text style={styles.cartItemText}>{item.name}</Text>
-                    <Text style={styles.cartItemPrice}>${item.price}</Text>
+                    <Text style={styles.cartItemPrice}>{item.price}₪</Text>
                   </View>
                 ))
               ) : (
                 <Text>Your cart is empty</Text>
               )}
             </ScrollView>
-            <Text style={styles.totalText}>Total: ${getTotalCost()}</Text>
+            <Text style={styles.totalText}>Total: {getTotalCost()}₪</Text>
 
             <Button title="Send Gift" onPress={handleSendGift} disabled={cart.length === 0} />
           </View>

@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   otherMessage: {
     padding: 10,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#ffffff',
     alignSelf: 'flex-start',
     borderRadius: 5,
     margin: 5,

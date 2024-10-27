@@ -129,9 +129,9 @@ const ManagerGiftsScreen = ({ navigation }) => {
       <Text style={styles.giftText}>From: {item.sender}</Text>
       <Text style={styles.giftText}>Seat: {item.senderSeat}</Text>
       <Text style={styles.giftText}>To: {item.reciverMail}</Text>
-      <Text style={styles.giftText}>To SeatNumber: {item.reciverSeat}</Text>
+      <Text style={styles.giftText}>To Seat Number: {item.reciverSeat}</Text>
       <Text style={styles.giftText}>Items: {JSON.parse(item.Message).cart.map(cartItem => cartItem.name).join(', ')}</Text>
-      <Text style={styles.giftText}>Price: {item.Price}</Text>
+      <Text style={styles.giftText}>Price: {item.Price}₪</Text>
       <Text style={styles.giftText}>Status: {item.status}</Text>
 
       {item.status === 'pending' && (

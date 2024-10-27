@@ -131,15 +131,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f1f1f1',
   },
   chatItem: {
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginTop: 5,
+    backgroundColor: '#ffffff',
   },
   unreadChatItem: {
-    backgroundColor: '#e0f7fa',  // Light blue background for unread chats
+    backgroundColor: '#e0f7fa',
   },
   chatText: {
     fontSize: 16,

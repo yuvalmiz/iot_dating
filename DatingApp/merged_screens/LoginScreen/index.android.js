@@ -12,10 +12,10 @@ export default function LoginScreen({ navigation }) {
   const { firstName, setFirstName, lastName, setLastName, email, setEmail, setManagedBars, setConnectedSeats } = useContext(SharedStateContext);
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: '431855682494-b42khlciqoc1pcfjt6agsqjkgnflllsj.apps.googleusercontent.com',
-    expoClientId: '431855682494-b42khlciqoc1pcfjt6agsqjkgnflllsj.apps.googleusercontent.com',
+    expoClientId: '431855682494-pk6k7d9dsvc9l6ofr8usu2ci43veu72c.apps.googleusercontent.com',
     redirectUri: makeRedirectUri({
       native: 'com.yuvalmizrahi.DatingApp:/oauthredirect', // Use your package name here
-      useProxy: true,
+      useProxy: false,
     }),
   });
 
@@ -77,7 +77,7 @@ export default function LoginScreen({ navigation }) {
   }, [email]);
 
   useEffect(() => {
-    setEmail("ad1@mail.tau.ac.il");
+    setEmail("");
   }, []);
 
   useEffect(() => {
