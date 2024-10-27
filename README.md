@@ -12,7 +12,7 @@ Welcome to **BarMingle**, an innovative dating app tailored for people to meet, 
 
 This repository contains the codebase for BarMingle, built using **React Native** and **Azure** for robust, scalable performance.
 
-Visit the [BarMingle Landing Page](https://yuvalmiz.github.io/iot_website/) to learn more about the project and see it in action.
+Visit the [**BarMingle Landing Page**](https://yuvalmiz.github.io/iot_website/) to learn more about the project and see it in action.
 
 ## Installation
 
