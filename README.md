@@ -28,5 +28,5 @@ To get started locally:
    ```
 For Android verify that you have a connected phone or AVD and click 'a', for web click 'w'.
 
-![BarMingle Demo](assets/logo.png)
+![](DatingApp/assets/logo.png)
 
