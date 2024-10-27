@@ -5,6 +5,7 @@ import Svg, { G, Image as SvgImage, ClipPath, Defs, Circle } from 'react-native-
 import placeholderImageUrl from '../../assets/question_mark.png';
 import { readFromTable } from '../../api';
 import { SharedStateContext } from '../../context';
+import useSignalR from '../../services/SignalRConnection';
 
 
 const ViewMapScreen = ({ navigation }) => {
@@ -21,6 +22,28 @@ const ViewMapScreen = ({ navigation }) => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [userSeat, setUserSeat] = useState(null);
+  const { connection } = useSignalR({
+    onMessageReceived: async (sender, message, timestamp) => {
+      setSeatsLoaded(false);
+      setSeats((prevMessages) => {
+        const newSeats = [...prevMessages];
+        const seatIndex = newSeats.findIndex(seat => seat.RowKey === message.RowKey);
+        if (seatIndex !== -1) {
+          newSeats[seatIndex].connectedUser = message.connectedUser;
+        }
+        console.log('New seats:', newSeats);
+        return newSeats;
+      });
+      setSeatsLoaded(true);
+  }, groupName: `seatsChange` });
+
+  useEffect(() => {
+    return () => {
+      if (connection) {
+        connection.stop();
+      }
+    }
+  }, [connection]);
 
   useEffect(() => {
     // Set the title of the screen to the selected bar name

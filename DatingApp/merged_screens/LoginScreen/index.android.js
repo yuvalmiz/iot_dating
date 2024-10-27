@@ -19,7 +19,9 @@ export default function LoginScreen({ navigation }) {
     }),
   });
 
-
+  useEffect(() => {
+    setEmail('yuvalmor24@gmail.com');
+  }, []);
   useEffect(() => {
     const userProfile = async (email) => {
       const managerQuery = `PartitionKey eq 'Managers' and RowKey eq '${email}'`;

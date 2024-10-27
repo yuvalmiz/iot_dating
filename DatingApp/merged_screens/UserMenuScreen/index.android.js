@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Modal, ScrollView } from 'react-native';
 import { SharedStateContext } from '../../context';
 import { FontAwesome } from '@expo/vector-icons';
-import { insertIntoTable } from '../../api';
+import { insertIntoTable, sendMessage } from '../../api';
 
 export default function UserMenuScreen({ navigation }) {
   const { email, firstName, lastName, selectedBar, setSelectedBar, selectedBarName, setSelectedBarName, connectedSeats, setConnectedSeats, setFirstName, setLastName, setEmail, setManagedBars } = useContext(SharedStateContext);
@@ -28,6 +28,7 @@ export default function UserMenuScreen({ navigation }) {
         connectedUser: '',
       };
       await insertIntoTable({ tableName: 'BarTable', entity: updatedSeat, action: 'update' });
+      sendMessage({ groupName: `seatsChange`, message: updatedSeat });
 
       // Remove the seat from connectedSeats in the context
       const updatedConnectedSeats = { ...connectedSeats };

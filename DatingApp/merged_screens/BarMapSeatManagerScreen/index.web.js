@@ -44,7 +44,8 @@ const BarMapSeatManager = ({ navigation }) => {
   const fetchSeats = async () => {
     try {
       const queryFilter = `PartitionKey eq '${selectedBar}' and RowKey ge 'seat_' and RowKey lt 'seat_~'`;
-      const fetchedSeats = await readFromTable('BarTable', queryFilter);
+      var fetchedSeats = await readFromTable('BarTable', queryFilter);
+      fetchedSeats = fetchedSeats.sort((a, b) => parseInt(a.RowKey.split('_')[1]) - parseInt(b.RowKey.split('_')[1]));
       setPrevSeat(fetchedSeats);
       setSeats(fetchedSeats);
     } catch (error) {

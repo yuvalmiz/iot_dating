@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ActivityIndicator, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { useNavigation } from '@react-navigation/native';
-import { insertIntoTable, readFromTable } from '../../api';
+import { insertIntoTable, readFromTable, sendMessage } from '../../api';
 import { SharedStateContext } from '../../context';
 
 export default function MyQRCodeScannerScreen() {
@@ -74,6 +74,7 @@ export default function MyQRCodeScannerScreen() {
     await insertIntoTable({ tableName: 'BarTable', entity: updatedSeat, action: 'update' });
 
     const updatedConnectedSeats = { ...connectedSeats, [barName]: seatName };
+    sendMessage({ groupName: `seatsChange`, message: updatedSeat });
     setConnectedSeats(updatedConnectedSeats);
     console.log('Connected seats:', updatedConnectedSeats);
 

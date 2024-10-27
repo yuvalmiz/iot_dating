@@ -3,6 +3,7 @@ import { View, Image, StyleSheet, Dimensions, TouchableWithoutFeedback, Activity
 import Svg, { G, Image as SvgImage } from 'react-native-svg';
 import { readFromTable } from '../../api';
 import { SharedStateContext } from '../../context';
+import useSignalR from '../../services/SignalRConnection';
 
 const placeholderImageUrl = 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Icon-round-Question_mark.svg';
 
@@ -20,6 +21,28 @@ const ViewMapScreen = ({ navigation }) => {
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [userSeat, setUserSeat] = useState(null);
+  const { connection } = useSignalR({
+    onMessageReceived: async (sender, message, timestamp) => {
+      setSeatsLoaded(false);
+      setSeats((prevMessages) => {
+        const newSeats = [...prevMessages];
+        const seatIndex = newSeats.findIndex(seat => seat.RowKey === message.RowKey);
+        if (seatIndex !== -1) {
+          newSeats[seatIndex].connectedUser = message.connectedUser;
+        }
+        console.log('New seats:', newSeats);
+        return newSeats;
+      });
+      setSeatsLoaded(true);
+  }, groupName: `seatsChange` });
+
+  useEffect(() => {
+    return () => {
+      if (connection) {
+        connection.stop();
+      }
+    }
+  }, [connection]);
 
   useEffect(() => {
     // Set the title of the screen to the selected bar name
