@@ -27,8 +27,8 @@ To get started locally:
    npx expo start
    ```
 For Android and iOS, follow React Native Expo's setup instructions.
-##Documentation
+## Documentation
 Refer to the [full documentation](https://yuvalmiz.github.io/iot_website/) for in-depth guides on setup, usage, and contribution.
-##Contributing
+## Contributing
 Contributions are welcome! Feel free to open issues or submit pull requests to help improve BarMingle.
 
