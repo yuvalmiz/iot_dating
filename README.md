@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="DatingApp/assets/logo.png" alt="BarMingle Demo" width="400" height="400">
+  <img src="DatingApp/assets/logo.png" alt="BarMingle Demo" width="200" height="200">
 </p>
 
 # BarMingle - The Bar-Oriented Dating App
